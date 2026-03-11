@@ -123,7 +123,7 @@ else:
     
     if st.session_state.view == 'student_detail':
         detail_spec = get_spec(s)
-        st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
+     #   st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
         st.title(s.get('FULL Name', 'Profile'))
         st.markdown(f"#### {detail_spec}")
         st.divider()
