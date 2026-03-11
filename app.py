@@ -4,83 +4,82 @@ import pandas as pd
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NHRD Summit 2026", page_icon="🏢", layout="centered")
 
-# Custom CSS to make it look like a mobile app
+# Custom CSS for a mobile-app feel
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .stTabs [data-baseweb="tab-list"] { gap: 10px; }
+    [data-testid="stHeader"] {display:none;}
+    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
     .stTabs [data-baseweb="tab"] {
-        height: 50px;
-        white-space: pre-wrap;
-        background-color: #f0f2f6;
+        height: 45px;
+        background-color: #1e1e1e;
         border-radius: 5px;
-        gap: 1px;
-        padding-top: 10px;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- LOAD DATA FROM LOCAL CSVs ---
+# --- LOAD DATA ---
 @st.cache_data
-def load_local_data(file_name):
+def load_data(file):
     try:
-        return pd.read_csv(file_name)
+        return pd.read_csv(file)
     except:
         return pd.DataFrame()
 
-df_agenda = load_local_data("agenda.csv")
-df_students = load_local_data("students.csv")
-df_speakers = load_local_data("speakers.csv")
+df_agenda = load_data("agenda.csv")
+df_students = load_data("students.csv")
+df_speakers = load_data("speakers.csv")
 
 # --- HEADER ---
 st.title("NHRD HR Summit 2026")
-st.markdown("### *Balancing Act of AI & EI*")
+st.markdown("#### *Balancing Act of AI & EI*")
 st.caption("SSSIHL Brindavan Campus | March 13, 2026")
 
-# --- TABS NAVIGATION ---
 tab1, tab2, tab3, tab4 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers"])
 
-# HOME TAB
+# --- HOME ---
 with tab1:
-    st.info("🔴 **Live Update:** Inauguration Ceremony starting in the Auditorium.")
-    st.markdown("""
-    Welcome to the SSSIHL Brindavan Campus. This app provides real-time access to the summit schedule, 
-    speaker profiles, and our MBA talent directory.
-    """)
+    st.info("🔴 **Live Update:** Inauguration Ceremony starting soon.")
+    st.write("Welcome to the SSSIHL Brindavan Campus. Use the tabs above to navigate.")
     st.divider()
     st.button("📍 View Campus Map", use_container_width=True)
 
-# AGENDA TAB
+# --- AGENDA ---
 with tab2:
-    st.subheader("Event Schedule")
+    st.subheader("Schedule")
     if not df_agenda.empty:
         st.dataframe(df_agenda, use_container_width=True, hide_index=True)
     else:
-        st.error("Agenda file (agenda.csv) not found.")
+        st.warning("agenda.csv not found or empty.")
 
-# STUDENTS TAB
+# --- STUDENTS ---
 with tab3:
-    st.subheader("MBA Talent Directory")
-    search = st.text_input("Search students by name or skill...")
+    st.subheader("MBA Talent")
     if not df_students.empty:
-        # Simple search logic
-        filtered_students = df_students[df_students.apply(lambda row: search.lower() in row.astype(str).str.lower().values, axis=1)] if search else df_students
-        for _, row in filtered_students.iterrows():
+        # This part is now 'safe' - it looks for the name column regardless of what you named it
+        name_col = next((c for c in df_students.columns if 'name' in c.lower()), df_students.columns[0])
+        spec_col = next((c for c in df_students.columns if 'spec' in c.lower()), df_students.columns[1] if len(df_students.columns)>1 else df_students.columns[0])
+        
+        for _, row in df_students.iterrows():
             with st.container(border=True):
-                st.write(f"**{row['Name']}**")
-                st.caption(f"Specialization: {row['Specialization']}")
-                st.link_button("View Resume", row['Resume_Link'])
+                st.write(f"**{row[name_col]}**")
+                st.caption(f"Area: {row[spec_col]}")
+                # Only show buttons if the columns exist
+                if 'Resume' in df_students.columns:
+                    st.link_button("View Resume", str(row['Resume']))
     else:
-        st.error("Student database (students.csv) not found.")
+        st.error("students.csv is missing.")
 
-# SPEAKERS TAB
+# --- SPEAKERS ---
 with tab4:
-    st.subheader("Our Esteemed Speakers")
+    st.subheader("Speakers")
     if not df_speakers.empty:
+        # Safe column detection
+        spk_name = next((c for c in df_speakers.columns if 'name' in c.lower()), df_speakers.columns[0])
+        
         for _, row in df_speakers.iterrows():
-            with st.expander(f"{row['Name']} - {row['Designation']}"):
-                st.write(row['Bio'])
+            with st.expander(f"{row[spk_name]}"):
+                if 'Bio' in row: st.write(row['Bio'])
+                if 'Designation' in row: st.caption(row['Designation'])
     else:
-        st.error("Speaker file (speakers.csv) not found.")
+        st.error("speakers.csv is missing.")
