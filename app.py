@@ -59,7 +59,8 @@ else:
     if os.path.exists("hero.png"):
         st.image("hero.png", use_container_width=True)
     st.title("NHRD SUMMIT 2026")
-    tab1, tab2, tab3, tab4 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers"])
+    # Updated to include the 5th tab
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
 
 # --- MAIN VIEWS ---
 if st.session_state.view == 'main':
@@ -80,15 +81,11 @@ if st.session_state.view == 'main':
                     st.rerun()
 
     with tab3: # Students
-        # 1. BATCH SELECTOR BUTTONS
         batch_filter = st.radio("Select Batch:", ["All", "2nd Years (Finals)", "1st Years (Juniors)"], horizontal=True)
-        
         search = st.text_input("🔍 Search by Name or Specialization...")
         
         filtered_df = df_students.copy()
         
-        # 2. FILTER LOGIC BASED ON YOUR CSV DATA
-        # Note: Adjust '24' and '25' if your Batch ID column uses different prefixes
         if batch_filter == "2nd Years (Finals)":
             filtered_df = filtered_df[filtered_df['nn'].astype(str).str.startswith('24')]
         elif batch_filter == "1st Years (Juniors)":
@@ -120,6 +117,27 @@ if st.session_state.view == 'main':
                 if pd.notna(row.get('LinkedIn Profile')):
                     cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
 
+    with tab5: # About SSSIHL
+        st.subheader("Sri Sathya Sai Institute of Higher Learning")
+        st.write("""
+        **Integral Education for a Better World**
+        
+        SSSIHL is a unique university founded on the principle of providing values-based education. 
+        It offers high-quality education free of cost, focusing on character building along with 
+Character Excellence.
+        
+        **Brindavan Campus:**
+        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
+        and Commerce. It fosters an environment where students combine modern business skills 
+        with human values.
+        """)
+        
+        if os.path.exists("campus.png"):
+            st.image("campus.png", caption="SSSIHL Brindavan Campus", use_container_width=True)
+        
+        st.divider()
+        st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
+
 # --- DETAIL PAGES ---
 else:
     s = st.session_state.selected_item
@@ -129,9 +147,9 @@ else:
         st.markdown(f"#### {detail_spec}")
         st.divider()
         st.subheader("📝 About")
-        st.write(s.get('Brief Write-up (3 lines)', 'N/A'))
+        st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
         st.subheader("💼 Internship")
-        st.write(f"**{s.get('Internship Company', 'N/A')}** - {s.get('InternshipRole', 'N/A')}")
+        st.write(f"**{str(s.get('Internship Company', 'N/A'))}** - {str(s.get('InternshipRole', 'N/A'))}")
         if pd.notna(s.get('LinkedIn Profile Link')):
             st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
