@@ -1,19 +1,19 @@
 import streamlit as st
 import pandas as pd
 
-# --- PAGE CONFIG ---
-st.set_page_config(page_title="NHRD Summit 2026", page_icon="🏢", layout="centered")
+# --- APP CONFIG ---
+st.set_page_config(page_title="NHRD Summit 2026", layout="centered")
 
-# Custom CSS for a mobile-app feel
+# Custom CSS for the "Mobile App" look
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display:none;}
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; }
+    .stTabs [data-baseweb="tab-list"] { gap: 10px; justify-content: center; }
     .stTabs [data-baseweb="tab"] {
-        height: 45px;
-        background-color: #1e1e1e;
-        border-radius: 5px;
-        color: white;
+        height: 50px; background-color: #111; border-radius: 10px; color: white; padding: 0 20px;
+    }
+    .card {
+        background-color: #1a1a1a; border-radius: 15px; padding: 15px; margin-bottom: 10px; border: 1px solid #333;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -21,65 +21,98 @@ st.markdown("""
 # --- LOAD DATA ---
 @st.cache_data
 def load_data(file):
-    try:
-        return pd.read_csv(file)
-    except:
-        return pd.DataFrame()
+    try: return pd.read_csv(file)
+    except: return pd.DataFrame()
 
 df_agenda = load_data("agenda.csv")
 df_students = load_data("students.csv")
 df_speakers = load_data("speakers.csv")
 
-# --- HEADER ---
-st.title("NHRD HR Summit 2026")
-st.markdown("#### *Balancing Act of AI & EI*")
-st.caption("SSSIHL Brindavan Campus | March 13, 2026")
+# Navigation State: This tracks if we are looking at a specific "Detail Page"
+if 'view' not in st.session_state: st.session_state.view = 'list'
+if 'item_data' not in st.session_state: st.session_state.item_data = None
 
-tab1, tab2, tab3, tab4 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers"])
+# --- NAVIGATION HEADER ---
+if st.session_state.view != 'list':
+    if st.button("⬅️ Back"):
+        st.session_state.view = 'list'
+        st.rerun()
+else:
+    st.title("NHRD SUMMIT 2026")
+    tab1, tab2, tab3, tab4 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers"])
 
-# --- HOME ---
-with tab1:
-    st.info("🔴 **Live Update:** Inauguration Ceremony starting soon.")
-    st.write("Welcome to the SSSIHL Brindavan Campus. Use the tabs above to navigate.")
+# --- TAB 1: HOME ---
+if st.session_state.view == 'list':
+    with tab1:
+        st.error("📢 **LIVE UPDATE:** Assemble in the Auditorium for the Keynote.")
+        st.subheader("🕒 HAPPENING NOW")
+        with st.container(border=True):
+            st.image("https://images.unsplash.com/photo-1475721027785-f74dea0f779f?w=800")
+            st.markdown("### Welcome Note")
+            st.caption("📍 Auditorium")
+
+# --- TAB 2: AGENDA (List) ---
+    with tab2:
+        if not df_agenda.empty:
+            for i, row in df_agenda.iterrows():
+                with st.container(border=True):
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.markdown(f"**{row['Session Title']}**")
+                        st.caption(f"🕒 {row['Start Time']} | 📍 {row['Hall Location']}")
+                    with col2:
+                        if st.button("View", key=f"ag_{i}"):
+                            st.session_state.view = 'agenda_detail'
+                            st.session_state.item_data = row
+                            st.rerun()
+
+# --- TAB 3: STUDENTS (List) ---
+    with tab3:
+        if not df_students.empty:
+            search = st.text_input("🔍 Search Student Talent...")
+            for i, row in df_students.iterrows():
+                if search.lower() in str(row['FULL Name']).lower():
+                    with st.container(border=True):
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.markdown(f"**{row['FULL Name']}**")
+                            st.caption(f"🎯 {row['MBA Specialization (Select) (Standalone)']}")
+                        with col2:
+                            if st.button("Info", key=f"st_{i}"):
+                                st.session_state.view = 'student_detail'
+                                st.session_state.item_data = row
+                                st.rerun()
+
+# --- TAB 4: SPEAKERS (List) ---
+    with tab4:
+        if not df_speakers.empty:
+            for i, row in df_speakers.iterrows():
+                with st.container(border=True):
+                    st.image(row['Photo'], width=100)
+                    st.markdown(f"### {row['Name']}")
+                    st.caption(f"{row['Job Title']} @ {row['Organization']}")
+                    st.link_button("LinkedIn Profile", row['LinkedIn Profile'])
+
+# --- DETAIL PAGES ---
+elif st.session_state.view == 'student_detail':
+    data = st.session_state.item_data
+    st.image("https://cdn-icons-png.flaticon.com/512/149/149071.png", width=150)
+    st.title(data['FULL Name'])
+    st.markdown(f"**Specialization:** {data['MBA Specialization (Select) (Standalone)']}")
     st.divider()
-    st.button("📍 View Campus Map", use_container_width=True)
+    st.subheader("About")
+    st.write(data['Brief Write-up (3 lines)'])
+    st.subheader("Experience")
+    st.write(f"**Internship:** {data['Internship Company']} ({data['InternshipRole']})")
+    st.link_button("🔗 View LinkedIn Profile", str(data['LinkedIn Profile Link']))
 
-# --- AGENDA ---
-with tab2:
-    st.subheader("Schedule")
-    if not df_agenda.empty:
-        st.dataframe(df_agenda, use_container_width=True, hide_index=True)
-    else:
-        st.warning("agenda.csv not found or empty.")
-
-# --- STUDENTS ---
-with tab3:
-    st.subheader("MBA Talent")
-    if not df_students.empty:
-        # This part is now 'safe' - it looks for the name column regardless of what you named it
-        name_col = next((c for c in df_students.columns if 'name' in c.lower()), df_students.columns[0])
-        spec_col = next((c for c in df_students.columns if 'spec' in c.lower()), df_students.columns[1] if len(df_students.columns)>1 else df_students.columns[0])
-        
-        for _, row in df_students.iterrows():
-            with st.container(border=True):
-                st.write(f"**{row[name_col]}**")
-                st.caption(f"Area: {row[spec_col]}")
-                # Only show buttons if the columns exist
-                if 'Resume' in df_students.columns:
-                    st.link_button("View Resume", str(row['Resume']))
-    else:
-        st.error("students.csv is missing.")
-
-# --- SPEAKERS ---
-with tab4:
-    st.subheader("Speakers")
-    if not df_speakers.empty:
-        # Safe column detection
-        spk_name = next((c for c in df_speakers.columns if 'name' in c.lower()), df_speakers.columns[0])
-        
-        for _, row in df_speakers.iterrows():
-            with st.expander(f"{row[spk_name]}"):
-                if 'Bio' in row: st.write(row['Bio'])
-                if 'Designation' in row: st.caption(row['Designation'])
-    else:
-        st.error("speakers.csv is missing.")
+elif st.session_state.view == 'agenda_detail':
+    data = st.session_state.item_data
+    if pd.notna(data['Session Image']): st.image(data['Session Image'])
+    st.title(data['Session Title'])
+    st.caption(f"📅 {data['Date']} | 🕒 {data['Start Time']} - {data['End Time']}")
+    st.divider()
+    st.subheader("Speaker")
+    st.write(data['Speaker Name'])
+    st.subheader("Topic")
+    st.write(data['Topic'])
