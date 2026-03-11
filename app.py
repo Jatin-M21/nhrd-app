@@ -19,8 +19,9 @@ df_agenda = load_data("agenda.csv")
 df_students = load_data("students.csv")
 df_speakers = load_data("speakers.csv")
 
-# --- HELPER FUNCTION: Get Specialization ---
-def get_specialization(row):
+# --- HELPER: Smart Specialization Logic ---
+def get_spec(row):
+    # This function is now the single source of truth for both List and Detail views
     standalone = row.get('MBA Specialization (Select) (Standalone)')
     major = row.get('MBA Specialization (Major)')
     minor = row.get('MBA Specialization (Minor)')
@@ -33,11 +34,11 @@ def get_specialization(row):
         return str(major)
     return "MBA Student"
 
-# --- NAVIGATION STATE ---
+# --- SESSION STATE & NAVIGATION ---
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
 
-# Wipe "memory" if data format is wrong (Prevents AttributeError)
+# Safety check: Force dictionary format
 if st.session_state.selected_item and not isinstance(st.session_state.selected_item, dict):
     st.session_state.selected_item = None
     st.session_state.view = 'main'
@@ -68,7 +69,7 @@ else:
 
 # --- MAIN VIEWS ---
 if st.session_state.view == 'main':
-    with tab1: # Home
+    with tab1:
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
         st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
@@ -88,20 +89,17 @@ if st.session_state.view == 'main':
         search = st.text_input("🔍 Search Students...")
         for i, row in df_students.iterrows():
             name = str(row.get('FULL Name', 'Student'))
-            spec = get_specialization(row) # Using the new smart logic
+            current_spec = get_spec(row)
             
-            if search.lower() in name.lower() or search.lower() in spec.lower():
+            if search.lower() in name.lower() or search.lower() in current_spec.lower():
                 with st.container(border=True):
                     c1, c2 = st.columns([1, 4])
                     img = row.get('photo') if pd.notna(row.get('photo')) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                     c1.image(img, width=60)
                     c2.markdown(f"**{name}**")
-                    c2.caption(spec)
+                    c2.caption(current_spec)
                     if st.button("View Profile", key=f"st_{i}"):
-                        # Store the specialization in the dict so the detail page can see it
-                        item_dict = row.to_dict()
-                        item_dict['computed_spec'] = spec 
-                        st.session_state.selected_item = item_dict
+                        st.session_state.selected_item = row.to_dict()
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
@@ -117,10 +115,14 @@ if st.session_state.view == 'main':
 # --- DETAIL PAGES ---
 else:
     s = st.session_state.selected_item
+    
     if st.session_state.view == 'student_detail':
+        # Re-calculate the spec here so we don't need 'computed_spec' in the dict
+        detail_spec = get_spec(s)
+        
         st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
         st.title(s.get('FULL Name', 'Profile'))
-        st.markdown(f"#### {s.get('computed_spec', 'MBA Student')}")
+        st.markdown(f"#### {detail_spec}")
         st.divider()
         st.subheader("📝 About")
         st.write(s.get('Brief Write-up (3 lines)', 'N/A'))
