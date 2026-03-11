@@ -59,9 +59,11 @@ else:
     if os.path.exists("hero.png"):
         st.image("hero.png", use_container_width=True)
     st.title("NHRD SUMMIT 2026")
+    # Updated to include the 5th tab
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
 
-    # --- MAIN VIEWS ---
+# --- MAIN VIEWS ---
+if st.session_state.view == 'main':
     with tab1:
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
@@ -83,6 +85,7 @@ else:
         search = st.text_input("🔍 Search by Name or Specialization...")
         
         filtered_df = df_students.copy()
+        
         if batch_filter == "2nd Years (Finals)":
             filtered_df = filtered_df[filtered_df['nn'].astype(str).str.startswith('24')]
         elif batch_filter == "1st Years (Juniors)":
@@ -91,6 +94,7 @@ else:
         for i, row in filtered_df.iterrows():
             name = str(row.get('FULL Name', 'Student'))
             current_spec = get_spec(row)
+            
             if search.lower() in name.lower() or search.lower() in current_spec.lower():
                 with st.container(border=True):
                     c1, c2 = st.columns([1, 4])
@@ -115,21 +119,22 @@ else:
 
     with tab5: # About SSSIHL
         st.subheader("Sri Sathya Sai Institute of Higher Learning")
-        st.markdown("### Integral Education for a Better World")
         st.write("""
+        **Integral Education for a Better World**
+        
         SSSIHL is a unique university founded on the principle of providing values-based education. 
         It offers high-quality education free of cost, focusing on character building along with 
-        Academic Excellence.
-        """)
-        st.markdown("---")
-        st.markdown("### Brindavan Campus")
-        st.write("""
+Character Excellence.
+        
+        **Brindavan Campus:**
         Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
         and Commerce. It fosters an environment where students combine modern business skills 
         with human values.
         """)
+        
         if os.path.exists("campus.png"):
             st.image("campus.png", caption="SSSIHL Brindavan Campus", use_container_width=True)
+        
         st.divider()
         st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
@@ -138,7 +143,7 @@ else:
     s = st.session_state.selected_item
     if st.session_state.view == 'student_detail':
         detail_spec = get_spec(s)
-        st.title(str(s.get('FULL Name', 'Profile')))
+        st.title(s.get('FULL Name', 'Profile'))
         st.markdown(f"#### {detail_spec}")
         st.divider()
         st.subheader("📝 About")
@@ -150,10 +155,10 @@ else:
 
     elif st.session_state.view == 'agenda_detail':
         if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(str(s.get('Session Title', 'Event Session')))
-        st.caption(f"🕒 {str(s.get('Start Time', 'TBD'))} | 📍 {str(s.get('Hall Location', 'TBD'))}")
+        st.title(s.get('Session Title', 'Event Session'))
+        st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
         st.divider()
         st.subheader("🎙️ Speaker")
-        st.write(str(s.get('Speaker Name', 'Various')))
+        st.write(s.get('Speaker Name', 'Various'))
         st.subheader("📖 Topic")
-        st.write(str(s.get('Topic', 'Join us for this session.')))
+        st.write(s.get('Topic', 'Join us for this session.'))
