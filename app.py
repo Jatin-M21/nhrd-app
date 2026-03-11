@@ -19,15 +19,30 @@ df_agenda = load_data("agenda.csv")
 df_students = load_data("students.csv")
 df_speakers = load_data("speakers.csv")
 
-# --- HARD RESET LOGIC (Fixes the AttributeError) ---
-if 'selected_item' in st.session_state:
-    if not isinstance(st.session_state.selected_item, dict):
-        st.session_state.selected_item = None
-        st.session_state.view = 'main'
+# --- HELPER FUNCTION: Get Specialization ---
+def get_specialization(row):
+    standalone = row.get('MBA Specialization (Select) (Standalone)')
+    major = row.get('MBA Specialization (Major)')
+    minor = row.get('MBA Specialization (Minor)')
+    
+    if pd.notna(standalone) and str(standalone).strip() != "":
+        return str(standalone)
+    elif pd.notna(major) and str(major).strip() != "":
+        if pd.notna(minor) and str(minor).strip() != "":
+            return f"{major} + {minor}"
+        return str(major)
+    return "MBA Student"
 
+# --- NAVIGATION STATE ---
 if 'view' not in st.session_state: st.session_state.view = 'main'
+if 'selected_item' not in st.session_state: st.session_state.selected_item = None
 
-# --- STYLING ---
+# Wipe "memory" if data format is wrong (Prevents AttributeError)
+if st.session_state.selected_item and not isinstance(st.session_state.selected_item, dict):
+    st.session_state.selected_item = None
+    st.session_state.view = 'main'
+
+# --- UI STYLING ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display:none;}
@@ -53,10 +68,10 @@ else:
 
 # --- MAIN VIEWS ---
 if st.session_state.view == 'main':
-    with tab1:
+    with tab1: # Home
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
-        st.write("Navigate the tabs to see the schedule and student talent.")
+        st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
 
     with tab2: # Agenda
         for i, row in df_agenda.iterrows():
@@ -72,16 +87,21 @@ if st.session_state.view == 'main':
     with tab3: # Students
         search = st.text_input("🔍 Search Students...")
         for i, row in df_students.iterrows():
-            name = str(row.get('FULL Name ', row.get('FULL Name', 'Student')))
-            if search.lower() in name.lower():
+            name = str(row.get('FULL Name', 'Student'))
+            spec = get_specialization(row) # Using the new smart logic
+            
+            if search.lower() in name.lower() or search.lower() in spec.lower():
                 with st.container(border=True):
                     c1, c2 = st.columns([1, 4])
                     img = row.get('photo') if pd.notna(row.get('photo')) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                     c1.image(img, width=60)
                     c2.markdown(f"**{name}**")
-                    c2.caption(row.get('MBA Specialization (Select) (Standalone)', 'MBA Student'))
+                    c2.caption(spec)
                     if st.button("View Profile", key=f"st_{i}"):
-                        st.session_state.selected_item = row.to_dict()
+                        # Store the specialization in the dict so the detail page can see it
+                        item_dict = row.to_dict()
+                        item_dict['computed_spec'] = spec 
+                        st.session_state.selected_item = item_dict
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
@@ -99,15 +119,17 @@ else:
     s = st.session_state.selected_item
     if st.session_state.view == 'student_detail':
         st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
-        st.title(s.get('FULL Name ', s.get('FULL Name', 'Profile')))
-        st.markdown(f"**{s.get('MBA Specialization (Select) (Standalone)')}**")
+        st.title(s.get('FULL Name', 'Profile'))
+        st.markdown(f"#### {s.get('computed_spec', 'MBA Student')}")
         st.divider()
-        st.subheader("About")
+        st.subheader("📝 About")
         st.write(s.get('Brief Write-up (3 lines)', 'N/A'))
-        st.subheader("Experience")
+        st.subheader("🎓 Education")
+        st.write(s.get('Education (Bachelors Degree)', 'N/A'))
+        st.subheader("💼 Internship")
         st.write(f"**{s.get('Internship Company', 'N/A')}** - {s.get('InternshipRole', 'N/A')}")
         if pd.notna(s.get('LinkedIn Profile Link')):
-            st.link_button("🔗 LinkedIn", str(s.get('LinkedIn Profile Link')))
+            st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
     elif st.session_state.view == 'agenda_detail':
         if pd.notna(s.get('Session Image')): st.image(s['Session Image'])
