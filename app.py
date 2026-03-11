@@ -135,28 +135,28 @@ else:
         st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
 # --- DETAIL PAGES (WHERE THE ERRORS WERE) ---
-else:
-    s = st.session_state.selected_item
+    else:
+        s = st.session_state.selected_item
     
-    if st.session_state.view == 'student_detail':
-        current_spec = get_spec(s)
-        # Fix for AttributeError: wrap photo in str()
-        st.title(str(s.get('FULL Name', 'Profile')))
-        st.markdown(f"#### {current_spec}")
-        st.divider()
-        st.subheader("📝 About")
-        st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
-        st.subheader("💼 Internship")
-        st.write(f"**{str(s.get('Internship Company', 'N/A'))}** - {str(s.get('InternshipRole', 'N/A'))}")
-        if pd.notna(s.get('LinkedIn Profile Link')):
-            st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
+        if st.session_state.view == 'student_detail':
+            current_spec = get_spec(s)
+            # Fix for AttributeError: wrap photo in str()
+            st.title(str(s.get('FULL Name', 'Profile')))
+            st.markdown(f"#### {current_spec}")
+            st.divider()
+            st.subheader("📝 About")
+            st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
+            st.subheader("💼 Internship")
+            st.write(f"**{str(s.get('Internship Company', 'N/A'))}** - {str(s.get('InternshipRole', 'N/A'))}")
+            if pd.notna(s.get('LinkedIn Profile Link')):
+                st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
-    elif st.session_state.view == 'agenda_detail':
-        if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(str(s.get('Session Title', 'Event Session')))
-        st.caption(f"🕒 {str(s.get('Start Time', 'TBD'))} | 📍 {str(s.get('Hall Location', 'TBD'))}")
-        st.divider()
-        st.subheader("🎙️ Speaker")
-        st.write(str(s.get('Speaker Name', 'Various Speakers')))
-        st.subheader("📖 Topic")
-        st.write(str(s.get('Topic', 'Join us for this session.')))
+        elif st.session_state.view == 'agenda_detail':
+            if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
+            st.title(str(s.get('Session Title', 'Event Session')))
+            st.caption(f"🕒 {str(s.get('Start Time', 'TBD'))} | 📍 {str(s.get('Hall Location', 'TBD'))}")
+            st.divider()
+            st.subheader("🎙️ Speaker")
+            st.write(str(s.get('Speaker Name', 'Various Speakers')))
+            st.subheader("📖 Topic")
+            st.write(str(s.get('Topic', 'Join us for this session.')))
