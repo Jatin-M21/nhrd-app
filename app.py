@@ -48,7 +48,7 @@ if st.session_state.view == 'main':
     with tab1:
         st.info("📢 **LIVE:** Join us in the Auditorium for the Inaugural Ceremony.")
         with st.container(border=True):
-            st.image("https://www.google.com/imgres?q=sssihl%20brindavan%20campus%20bangalore&imgurl=https%3A%2F%2Fblogger.googleusercontent.com%2Fimg%2Fb%2FR29vZ2xl%2FAVvXsEiDeDeaX42PFOazA69Cylhx5WOIvEMdjreXQuYc343mPsaQV-qE9UMyko0c2zkhb0G-ltBWbP8AJngwQBXPHSOuWBf-6bYPtNEes2k67LdFiY0rcIdiIG365U5ZqvgrnaJJM_tFnccHMJTG%2Fs2044%2FBRN%2BCAMPUS%2BGARDEN.JPG&imgrefurl=https%3A%2F%2Fsathyasaiwithstudents.blogspot.com%2F2020%2F11%2Fthe-academic-vision-of-sri-sathya-sai.html&docid=udKRT-0nCMrMcM&tbnid=R8lIXxN1wpjfeM&vet=12ahUKEwii6Oz4m5iTAxW3oWMGHQ8ZIrUQnPAOegQIZRAB..i&w=2044&h=1364&hcb=2&ved=2ahUKEwii6Oz4m5iTAxW3oWMGHQ8ZIrUQnPAOegQIZRABw=800")
+            st.image("w=800")
             st.subheader("Welcome to Brindavan")
             st.write("Sri Sathya Sai Institute of Higher Learning")
 
