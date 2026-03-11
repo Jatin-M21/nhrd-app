@@ -121,18 +121,18 @@ if st.session_state.view == 'main':
        st.subheader("Sri Sathya Sai Institute of Higher Learning")
         
         # Using a container for a clean, non-textbox look
-        st.markdown("### Integral Education for a Better World")
+       st.markdown("### Integral Education for a Better World")
         
-        st.write("""
+       st.write("""
         SSSIHL is a unique university founded on the principle of providing values-based education. 
         It offers high-quality education free of cost, focusing on character building along with 
         Academic Excellence.
         """)
         
-        st.markdown("---") # Visual separator
+       st.markdown("---") # Visual separator
         
-        st.markdown("### **Brindavan Campus**")
-        st.write("""
+       st.markdown("### **Brindavan Campus**")
+       st.write("""
         Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
         and Commerce. It fosters an environment where students combine modern business 
         skills with human values.
