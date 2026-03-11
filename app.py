@@ -118,27 +118,31 @@ if st.session_state.view == 'main':
                         cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
 
 # --- DETAIL PAGES ---
+# --- DETAIL PAGES ---
 else:
     s = st.session_state.selected_item
     
     if st.session_state.view == 'student_detail':
         detail_spec = get_spec(s)
-     #   st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
+        st.image(s.get('photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=120)
         st.title(s.get('FULL Name', 'Profile'))
         st.markdown(f"#### {detail_spec}")
         st.divider()
         st.subheader("📝 About")
         st.write(s.get('Brief Write-up (3 lines)', 'N/A'))
-        st.subheader("🎓 Education")
-        st.write(s.get('Education (Bachelors Degree)', 'N/A'))
+        # Using .get() ensures no crash if the column is missing
         st.subheader("💼 Internship")
         st.write(f"**{s.get('Internship Company', 'N/A')}** - {s.get('InternshipRole', 'N/A')}")
         if pd.notna(s.get('LinkedIn Profile Link')):
             st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
     elif st.session_state.view == 'agenda_detail':
-        # Safely fall back to hero banner if Session Image is completely missing from CSV
-        if os.path.exists("hero.png"):
+        # This is the part you likely commented out. 
+        # Using .get() with a default of None prevents the crash!
+        session_img = s.get('Session Image', None)
+        if session_img and pd.notna(session_img):
+            st.image(session_img, use_container_width=True)
+        elif os.path.exists("hero.png"):
             st.image("hero.png", use_container_width=True)
             
         st.title(s.get('Session Title', 'Event Session'))
@@ -146,5 +150,3 @@ else:
         st.divider()
         st.subheader("🎙️ Speaker")
         st.write(s.get('Speaker Name', 'Various Speakers'))
-        st.subheader("📖 Topic & Description")
-        st.write(s.get('Topic', 'Join us for this insightful session at the NHRD Summit.'))
