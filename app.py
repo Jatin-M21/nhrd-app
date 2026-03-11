@@ -6,7 +6,7 @@ from datetime import datetime
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NHRD Summit 2026", layout="centered")
 
-# --- DATA LOADING ---
+# --- DATA LOADING (GitHub-Proof) ---
 @st.cache_data(ttl=60) 
 def load_data(file_path):
     try: 
@@ -64,18 +64,15 @@ else:
         st.image("hero.png", use_container_width=True)
     
     st.title("NHRD SUMMIT 2026")
-    # Added the 5th tab: "🏫 About SSSIHL"
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
 
-    # --- TAB 1: HOME ---
     with tab1:
         st.subheader("Welcome")
         st.info("📍 **Venue:** SSSIHL, Brindavan Campus.")
-        st.write("Welcome to the NHRD HR Summit. Explore the tabs to navigate the event details and our talent pool.")
+        st.write("Welcome to the NHRD HR Summit. Explore the tabs to navigate the event details.")
         st.divider()
         st.caption(f"App synced with GitHub at {datetime.now().strftime('%H:%M:%S')}")
 
-    # --- TAB 2: AGENDA ---
     with tab2:
         if not df_agenda.empty:
             for i, row in df_agenda.iterrows():
@@ -88,7 +85,6 @@ else:
                         st.session_state.view = 'agenda_detail'
                         st.rerun()
 
-    # --- TAB 3: STUDENTS ---
     with tab3:
         if not df_students.empty:
             batch_filter = st.radio("Batch:", ["All", "2nd Years", "1st Years"], horizontal=True)
@@ -106,8 +102,10 @@ else:
                 if search.lower() in name.lower() or search.lower() in spec.lower():
                     with st.container(border=True):
                         sc1, sc2 = st.columns([1, 4])
-                        photo = row.get('photo') if pd.notna(row.get('photo')) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                        sc1.image(photo, width=65)
+                        # Safety check for photo
+                        photo = row.get('photo')
+                        photo_url = str(photo) if pd.notna(photo) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                        sc1.image(photo_url, width=65)
                         sc2.markdown(f"**{name}**")
                         sc2.caption(spec)
                         if st.button("View Profile", key=f"st_{i}"):
@@ -115,62 +113,50 @@ else:
                             st.session_state.view = 'student_detail'
                             st.rerun()
 
-    # --- TAB 4: SPEAKERS ---
     with tab4:
         if not df_speakers.empty:
             for i, row in df_speakers.iterrows():
                 with st.container(border=True):
                     sc1, sc2 = st.columns([1, 3])
-                    sc1.image(row.get('Photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=80)
+                    s_photo = row.get('Photo')
+                    s_photo_url = str(s_photo) if pd.notna(s_photo) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    sc1.image(s_photo_url, width=80)
                     sc2.markdown(f"**{row.get('Name', 'Speaker')}**")
                     sc2.caption(f"{row.get('Job Title', '')} at {row.get('Organization', '')}")
                     if pd.notna(row.get('LinkedIn Profile')):
                         sc2.link_button("LinkedIn", str(row.get('LinkedIn Profile')))
 
-    # --- TAB 5: ABOUT SSSIHL ---
     with tab5:
         st.subheader("Sri Sathya Sai Institute of Higher Learning")
-        st.write("""
-        **Integral Education for a Better World**
-        
-        SSSIHL is a unique university founded on the principle of providing values-based education. 
-        It offers high-quality education free of cost, focusing on character building along with 
-        academic excellence.
-        
-        **Brindavan Campus:**
-        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Economics and 
-        Management, fostering an environment where students combine modern business skills 
-        with ancient human values.
-        """)
-        
-        # Tip: You can upload an image named 'campus.png' to GitHub to show it here
+        st.write("SSSIHL provides values-based integral education at the Brindavan Campus.")
         if os.path.exists("campus.png"):
             st.image("campus.png", caption="SSSIHL Brindavan Campus", use_container_width=True)
-        
         st.divider()
         st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
-# --- DETAIL PAGES ---
+# --- DETAIL PAGES (WHERE THE ERRORS WERE) ---
 else:
     s = st.session_state.selected_item
+    
     if st.session_state.view == 'student_detail':
-        spec = get_spec(s)
-        st.title(s.get('FULL Name', 'Profile'))
-        st.markdown(f"#### {spec}")
+        current_spec = get_spec(s)
+        # Fix for AttributeError: wrap photo in str()
+        st.title(str(s.get('FULL Name', 'Profile')))
+        st.markdown(f"#### {current_spec}")
         st.divider()
         st.subheader("📝 About")
-        st.write(s.get('Brief Write-up (3 lines)', 'N/A'))
+        st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
         st.subheader("💼 Internship")
-        st.write(f"**{s.get('Internship Company', 'N/A')}** - {s.get('InternshipRole', 'N/A')}")
+        st.write(f"**{str(s.get('Internship Company', 'N/A'))}** - {str(s.get('InternshipRole', 'N/A'))}")
         if pd.notna(s.get('LinkedIn Profile Link')):
             st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
     elif st.session_state.view == 'agenda_detail':
         if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(s.get('Session Title', 'Event Session'))
-        st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
+        st.title(str(s.get('Session Title', 'Event Session')))
+        st.caption(f"🕒 {str(s.get('Start Time', 'TBD'))} | 📍 {str(s.get('Hall Location', 'TBD'))}")
         st.divider()
         st.subheader("🎙️ Speaker")
-        st.write(s.get('Speaker Name', 'Various Speakers'))
+        st.write(str(s.get('Speaker Name', 'Various Speakers')))
         st.subheader("📖 Topic")
-        st.write(s.get('Topic', 'Join us for this session.'))
+        st.write(str(s.get('Topic', 'Join us for this session.')))
