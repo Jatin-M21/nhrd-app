@@ -139,13 +139,13 @@ if st.session_state.view == 'main':
         """)
         
         # Displaying campus image if it exists
-        if os.path.exists("campus.png"):
+       if os.path.exists("campus.png"):
             st.image("campus.png", caption="SSSIHL Brindavan Campus", use_container_width=True)
         
-        st.divider()
+       st.divider()
         
         # Center-aligned link button
-        st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
+       st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
 # --- DETAIL PAGES ---
 else:
