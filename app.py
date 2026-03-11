@@ -117,7 +117,7 @@ if st.session_state.view == 'main':
                 if pd.notna(row.get('LinkedIn Profile')):
                     cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
 
-   with tab5: # About SSSIHL
+     with tab5: # About SSSIHL
         st.subheader("Sri Sathya Sai Institute of Higher Learning")
         
         # Using a container for a clean, non-textbox look
