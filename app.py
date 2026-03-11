@@ -64,7 +64,7 @@ else:
 # --- MAIN VIEWS ---
 if st.session_state.view == 'main':
     with tab1:
-        st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
+        st.info("📢 **LIVE:**  The Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
         st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
 
