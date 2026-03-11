@@ -117,27 +117,35 @@ if st.session_state.view == 'main':
                 if pd.notna(row.get('LinkedIn Profile')):
                     cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
 
-    with tab5: # About SSSIHL
+   with tab5: # About SSSIHL
         st.subheader("Sri Sathya Sai Institute of Higher Learning")
-        st.write("""
-        **Integral Education for a Better World**
         
+        # Using a container for a clean, non-textbox look
+        st.markdown("### Integral Education for a Better World")
+        
+        st.write("""
         SSSIHL is a unique university founded on the principle of providing values-based education. 
         It offers high-quality education free of cost, focusing on character building along with 
-Character Excellence.
-        
-        **Brindavan Campus:**
-        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
-        and Commerce. It fosters an environment where students combine modern business skills 
-        with human values.
+        Academic Excellence.
         """)
         
+        st.markdown("---") # Visual separator
+        
+        st.markdown("### **Brindavan Campus**")
+        st.write("""
+        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
+        and Commerce. It fosters an environment where students combine modern business 
+        skills with human values.
+        """)
+        
+        # Displaying campus image if it exists
         if os.path.exists("campus.png"):
             st.image("campus.png", caption="SSSIHL Brindavan Campus", use_container_width=True)
         
         st.divider()
+        
+        # Center-aligned link button
         st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
-
 # --- DETAIL PAGES ---
 else:
     s = st.session_state.selected_item
