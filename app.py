@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import datetime
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NHRD Summit 2026", layout="centered")
@@ -87,6 +88,8 @@ if st.session_state.view == 'main':
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
         st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
+        current_time = datetime.datetime.now().strftime("%I:%M %p")
+        st.caption(f"Last Data Sync: {current_time}")
 
     with tab2: # Agenda
         for i, row in df_agenda.iterrows():
