@@ -41,31 +41,72 @@ if 'selected_item' not in st.session_state: st.session_state.selected_item = Non
 # --- UI STYLING ---
 st.markdown("""
     <style>
+    /* 1. Remove Streamlit Header & Adjust Background */
     [data-testid="stHeader"] {display:none;}
-    
-    /* Center the tabs and reduce gaps for mobile */
+    .stApp {
+        background-color: #0E1117;
+        color: #FFFFFF;
+    }
+
+    /* 2. Enhanced Tab Navigation for Mobile */
     .stTabs [data-baseweb="tab-list"] { 
-        gap: 2px; 
-        justify-content: center; 
+        gap: 4px; 
+        justify-content: center;
+        background-color: #1A1C24;
+        padding: 5px;
+        border-radius: 12px;
     }
     
-    /* Make tab buttons smaller and padding tighter for phone screens */
     .stTabs [data-baseweb="tab"] {
-        height: 40px; 
-        background-color: #111; 
-        border-radius: 6px; 
-        color: white; 
-        padding: 0 8px; /* Reduced from 15px */
-        font-size: 12px; /* Smaller font to fit all 5 buttons */
+        height: 42px; 
+        background-color: transparent; 
+        border-radius: 8px; 
+        color: #9499A1; 
+        padding: 0 10px;
+        font-size: 12px;
+        border: none !important;
     }
     
-    /* Highlight the active tab */
+    /* Active Tab Glow Effect */
     .stTabs [aria-selected="true"] {
-        background-color: #262730 !important;
-        border-bottom: 2px solid #ff4b4b !important;
+        background-color: #FF4B4B !important;
+        color: white !important;
+        box-shadow: 0px 4px 10px rgba(255, 75, 75, 0.3);
+    }
+
+    /* 3. Card Effect for Containers */
+    div[data-testid="stVerticalBlockBorderWrapper"] > div {
+        background-color: #1A1C24 !important;
+        border: 1px solid #262730 !important;
+        border-radius: 15px !important;
+        padding: 15px !important;
+        transition: transform 0.2s ease-in-out;
+        margin-bottom: 10px;
+    }
+
+    /* Subtle hover effect */
+    div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {
+        border-color: #FF4B4B !important;
+    }
+
+    /* 4. Styled Buttons */
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #FF4B4B;
+        background-color: transparent;
+        color: white;
+        font-weight: 500;
     }
     
-    .stButton>button { border-radius: 10px; }
+    .stButton>button:hover {
+        background-color: #FF4B4B;
+        color: white;
+    }
+
+    .stCaption {
+        color: #808495 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -79,7 +120,6 @@ else:
     if os.path.exists("hero.png"):
         st.image("hero.png", use_container_width=True)
     st.title("NHRD SUMMIT 2026")
-    # Updated to include the 5th tab
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
 
 # --- MAIN VIEWS ---
@@ -88,10 +128,10 @@ if st.session_state.view == 'main':
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
         st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
+        
         utc_now = datetime.datetime.now()
         ist_now = utc_now + datetime.timedelta(hours=5, minutes=30)
         current_time = ist_now.strftime("%I:%M %p")
-    
         st.caption(f"Last Data Sync: {current_time} (IST)")
 
     with tab2: # Agenda
@@ -144,32 +184,17 @@ if st.session_state.view == 'main':
 
     with tab5: # About SSSIHL
        st.subheader("Sri Sathya Sai Institute of Higher Learning")
-        
-        # Using a container for a clean, non-textbox look
        st.markdown("### Integral Education for a Better World")
-        
-       st.write("""
-        SSSIHL is a unique university founded on the principle of providing values-based education. 
-        It offers high-quality education free of cost, focusing on character building along with 
-        Academic Excellence.
-        """)
-        
-       st.markdown("---") # Visual separator
-        
+       st.write("SSSIHL is a unique university founded on the principle of providing values-based education. It offers high-quality education free of cost.")
+       
+       st.markdown("---")
        st.markdown("### **Brindavan Campus**")
-       st.write("""
-        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management 
-        and Commerce. It fosters an environment where students combine modern business 
-        skills with human values.
-        """)
-        
-        # Displaying campus image if it exists
+       st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
+       
        if os.path.exists("campus.jpg"):
-            st.image("campus.jpg", caption="SSSIHL Brindavan Campus", width=350)
-        
+           st.image("campus.jpg", caption="SSSIHL Brindavan Campus", width=350)
+       
        st.divider()
-        
-        # Center-aligned link button
        st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
 # --- DETAIL PAGES ---
@@ -189,22 +214,4 @@ else:
 
     elif st.session_state.view == 'agenda_detail':
         if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(s.get('Session Title', 'Event Session'))
-        st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
-        st.divider()
-        summary_text = s.get('Event Summary')
-        if pd.notna(summary_text) and str(summary_text).strip() != "":
-            st.subheader("📝 Session Summary & Highlights")
-            with st.container(border=True):
-                st.write(str(summary_text))
-        st.divider()
-        feedback_url = s.get('Feedback_Link')
-        
-        if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
-            st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
-            st.info("Your feedback helps us improve the summit experience!")
-        st.divider()
-        st.subheader("🎙️ Speaker")
-        st.write(s.get('Speaker Name', 'Various'))
-        st.subheader("📖 Topic")
-        st.write(s.get('Topic', 'Join us for this session.'))
+        st.title(s.get('Session Title',
