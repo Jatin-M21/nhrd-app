@@ -165,7 +165,7 @@ if st.session_state.view == 'main':
         
         # Displaying campus image if it exists
        if os.path.exists("campus.jpg"):
-            st.image("campus.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
+            st.image("campus.jpg", caption="SSSIHL Brindavan Campus", width=350)
         
        st.divider()
         
