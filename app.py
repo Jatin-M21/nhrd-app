@@ -41,10 +41,29 @@ if 'selected_item' not in st.session_state: st.session_state.selected_item = Non
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display:none;}
-    .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: center; }
-    .stTabs [data-baseweb="tab"] {
-        height: 45px; background-color: #111; border-radius: 8px; color: white; padding: 0 15px;
+    
+    /* Center the tabs and reduce gaps for mobile */
+    .stTabs [data-baseweb="tab-list"] { 
+        gap: 2px; 
+        justify-content: center; 
     }
+    
+    /* Make tab buttons smaller and padding tighter for phone screens */
+    .stTabs [data-baseweb="tab"] {
+        height: 40px; 
+        background-color: #111; 
+        border-radius: 6px; 
+        color: white; 
+        padding: 0 8px; /* Reduced from 15px */
+        font-size: 12px; /* Smaller font to fit all 5 buttons */
+    }
+    
+    /* Highlight the active tab */
+    .stTabs [aria-selected="true"] {
+        background-color: #262730 !important;
+        border-bottom: 2px solid #ff4b4b !important;
+    }
+    
     .stButton>button { border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
