@@ -1,8 +1,13 @@
 [server]
 enableCORS = false
 enableXsrfProtection = false
-address = "0.0.0.0"
-port = 8501
 
 [browser]
 gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#FF4B4B"
+backgroundColor = "#0E1117"
+secondaryBackgroundColor = "#1A1C24"
+textColor = "#FFFFFF"
