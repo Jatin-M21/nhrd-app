@@ -34,8 +34,8 @@ st.markdown("""
     /* 1. Remove standard tabs */
     .stTabs { display: none; }
 
-    /* 2. Custom Typography for Summit Header */
-    .summit-title { font-size: 32px; font-weight: 800; margin-bottom: 0px; }
+    /* 2. Custom Typography */
+    .summit-title { font-size: 32px; font-weight: 800; margin-bottom: 0px; line-height: 1.2;}
     .summit-subtitle { color: #808495; font-size: 16px; margin-bottom: 20px; }
     .section-header { font-size: 22px; font-weight: 700; margin: 20px 0px 10px 0px; text-transform: uppercase; }
 
@@ -69,6 +69,17 @@ st.markdown("""
         border-radius: 12px;
         margin-bottom: 20px;
     }
+
+    /* 6. Button Styling */
+    .stButton>button {
+        width: 100%;
+        border-radius: 8px;
+        border: 1px solid #FF4B4B;
+        background-color: transparent;
+        color: white;
+        font-weight: 500;
+    }
+    .stButton>button:hover { background-color: #FF4B4B; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -83,11 +94,26 @@ def get_spec(row_data):
         return f"{major} + {minor}" if pd.notna(minor) and str(minor).strip() else str(major)
     return "MBA Student"
 
-# --- MAIN NAVIGATION LOGIC ---
-if st.session_state.view != 'main':
-    if st.button("⬅️ Back"):
-        st.session_state.view = 'main'
-        st.rerun()
+
+# ==========================================
+# --- UNIVERSAL TOP ACTION BAR ---
+# ==========================================
+# This creates a top-right button logic depending on the current view
+top_c1, top_c2 = st.columns([4, 1.2]) 
+with top_c2:
+    if st.session_state.view != 'main':
+        # If on a detail page, show "Back to List"
+        if st.button("⬅️ List", use_container_width=True):
+            st.session_state.view = 'main'
+            st.rerun()
+    elif st.session_state.nav != 'Home':
+        # If on a main tab that is NOT Home, show "Go to Home"
+        if st.button("🏠 Home", use_container_width=True):
+            st.session_state.nav = 'Home'
+            st.rerun()
+# Note: If view == 'main' AND nav == 'Home', the top right corner stays empty and clean!
+# ==========================================
+
 
 # --- CONTENT RENDERING ---
 if st.session_state.view == 'main':
@@ -105,7 +131,7 @@ if st.session_state.view == 'main':
         st.markdown('<div class="section-header">🕒 HAPPENING NOW</div>', unsafe_allow_html=True)
         with st.container(border=True):
             c1, c2 = st.columns([1, 3])
-            c1.image("https://cdn-icons-png.flaticon.com/512/3652/3652191.png", width=60) # Placeholder for Welcome Note pic
+            c1.image("https://cdn-icons-png.flaticon.com/512/3652/3652191.png", width=60) # Placeholder
             c2.markdown("**Welcome Note**")
             c2.caption("Auditorium")
 
@@ -176,4 +202,4 @@ if cols[0].button("🏠\nHome"): st.session_state.nav = 'Home'; st.rerun()
 if cols[1].button("📅\nAgenda"): st.session_state.nav = 'Agenda'; st.rerun()
 if cols[2].button("🎓\nTalent"): st.session_state.nav = 'Students'; st.rerun()
 if cols[3].button("🎙️\nSpeaker"): st.session_state.nav = 'Speakers'; st.rerun()
-if cols[4].button("🏫\nSSSIHL"): st.session_state.nav = 'Home'; st.rerun() # Points back to info
+if cols[4].button("🏫\nSSSIHL"): st.session_state.nav = 'Home'; st.rerun()
