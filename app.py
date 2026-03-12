@@ -37,45 +37,16 @@ def get_spec(row_data):
 # --- SESSION STATE ---
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
-if 'active_tab' not in st.session_state: st.session_state.active_tab = 0
+if 'current_tab' not in st.session_state: st.session_state.current_tab = "🏠 Home"
 
 # --- UI STYLING ---
 st.markdown("""
     <style>
-    /* 1. Remove Streamlit Header & Adjust Background */
     [data-testid="stHeader"] {display:none;}
     .stApp {
         background-color: #0E1117;
         color: #FFFFFF;
     }
-
-    /* 2. Enhanced Tab Navigation for Mobile */
-    .stTabs [data-baseweb="tab-list"] { 
-        gap: 4px; 
-        justify-content: center;
-        background-color: #1A1C24;
-        padding: 5px;
-        border-radius: 12px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        height: 42px; 
-        background-color: transparent; 
-        border-radius: 8px; 
-        color: #9499A1; 
-        padding: 0 10px;
-        font-size: 12px;
-        border: none !important;
-    }
-    
-    /* Active Tab Glow Effect */
-    .stTabs [aria-selected="true"] {
-        background-color: #FF4B4B !important;
-        color: white !important;
-        box-shadow: 0px 4px 10px rgba(255, 75, 75, 0.3);
-    }
-
-    /* 3. Card Effect for Containers */
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #1A1C24 !important;
         border: 1px solid #262730 !important;
@@ -84,13 +55,9 @@ st.markdown("""
         transition: transform 0.2s ease-in-out;
         margin-bottom: 10px;
     }
-
-    /* Subtle hover effect */
     div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {
         border-color: #FF4B4B !important;
     }
-
-    /* 4. Styled Buttons */
     .stButton>button {
         width: 100%;
         border-radius: 8px;
@@ -99,24 +66,53 @@ st.markdown("""
         color: white;
         font-weight: 500;
     }
-    
     .stButton>button:hover {
         background-color: #FF4B4B;
         color: white;
     }
-
     .stCaption {
         color: #808495 !important;
     }
 
-    /* 5. Home button styling - small, top-left, subtle */
-    .home-btn-container {
-        display: flex;
-        justify-content: flex-start;
-        margin-bottom: 10px;
+    /* Custom nav bar styling */
+    div[data-testid="stHorizontalBlock"] .stButton>button {
+        height: 42px;
+        font-size: 11px;
+        padding: 0 4px;
+        border-color: #262730;
+        color: #9499A1;
+        border-radius: 8px;
+    }
+    div[data-testid="stHorizontalBlock"] .stButton>button:hover {
+        border-color: #FF4B4B;
+        color: white;
+        background-color: transparent;
+    }
+
+    /* Home button - small subtle style */
+    .home-row .stButton>button {
+        width: auto !important;
+        font-size: 12px;
+        padding: 2px 10px;
+        border-color: #444;
+        color: #aaa;
+        background-color: transparent;
+    }
+    .home-row .stButton>button:hover {
+        background-color: #FF4B4B;
+        border-color: #FF4B4B;
+        color: white;
     }
     </style>
     """, unsafe_allow_html=True)
+
+# --- REUSABLE HOME BUTTON ---
+def home_button(key):
+    col1, col2 = st.columns([1, 6])
+    with col1:
+        if st.button("🏠 Home", key=key):
+            st.session_state.current_tab = "🏠 Home"
+            st.rerun()
 
 # --- NAVIGATION ---
 if st.session_state.view != 'main':
@@ -128,14 +124,26 @@ else:
     if os.path.exists("hero.png"):
         st.image("hero.png", use_container_width=True)
     st.title("NHRD SUMMIT 2026")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
+
+    # --- CUSTOM SESSION-STATE DRIVEN NAV BAR (replaces st.tabs) ---
+    TAB_NAMES = ["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"]
+    nav_cols = st.columns(len(TAB_NAMES))
+    for idx, tab_name in enumerate(TAB_NAMES):
+        with nav_cols[idx]:
+            if st.button(tab_name, key=f"nav_{idx}"):
+                st.session_state.current_tab = tab_name
+                st.rerun()
+    st.markdown("---")
+
+    active_tab = st.session_state.current_tab
 
 # --- MAIN VIEWS ---
 if st.session_state.view == 'main':
-    with tab1:
+
+    # ── HOME ──
+    if active_tab == "🏠 Home":
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         
-        # --- NEW: MANUAL HAPPENING NOW ---
         st.subheader("🕒 Happening Now")
         if not df_agenda.empty and 'Status' in df_agenda.columns:
             live_session = df_agenda[df_agenda['Status'].str.strip().str.lower() == 'live'].head(1)
@@ -154,22 +162,15 @@ if st.session_state.view == 'main':
         current_time = ist_now.strftime("%I:%M %p")
         st.caption(f"Last Data Sync: {current_time} (IST)")
 
-    with tab2: # Agenda
-        # --- HOME BUTTON ---
-        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
-        if st.button("🏠 Home", key="home_btn_agenda", help="Go back to Home tab"):
-            st.session_state.active_tab = 0
-            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
-            st.markdown(js, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        # --- END HOME BUTTON ---
+    # ── AGENDA ──
+    elif active_tab == "📅 Agenda":
+        home_button("home_agenda")
 
         for i, row in df_agenda.iterrows():
             with st.container(border=True):
                 c1, c2 = st.columns([4, 1])
                 c1.markdown(f"**{row.get('Session Title', 'Session')}**")
                 c1.caption(f"🕒 {row.get('Start Time', 'TBD')} | 📍 {row.get('Hall Location', 'TBD')}")
-                # ADDED: Topic preview in list
                 if pd.notna(row.get('Topic')):
                     c1.markdown(f"*{row.get('Topic')}*")
                 if c2.button("View", key=f"ag_{i}"):
@@ -177,15 +178,9 @@ if st.session_state.view == 'main':
                     st.session_state.view = 'agenda_detail'
                     st.rerun()
 
-    with tab3: # Students
-        # --- HOME BUTTON ---
-        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
-        if st.button("🏠 Home", key="home_btn_students", help="Go back to Home tab"):
-            st.session_state.active_tab = 0
-            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
-            st.markdown(js, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        # --- END HOME BUTTON ---
+    # ── STUDENTS ──
+    elif active_tab == "🎓 Students":
+        home_button("home_students")
 
         batch_filter = st.radio("Select Batch:", ["All", "2nd Years (Finals)", "1st Years (Juniors)"], horizontal=True)
         search = st.text_input("🔍 Search by Name or Specialization...")
@@ -213,15 +208,9 @@ if st.session_state.view == 'main':
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
-    with tab4: # Speakers
-        # --- HOME BUTTON ---
-        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
-        if st.button("🏠 Home", key="home_btn_speakers", help="Go back to Home tab"):
-            st.session_state.active_tab = 0
-            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
-            st.markdown(js, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        # --- END HOME BUTTON ---
+    # ── SPEAKERS ──
+    elif active_tab == "🎙️ Speakers":
+        home_button("home_speakers")
 
         for i, row in df_speakers.iterrows():
             with st.container(border=True):
@@ -229,20 +218,13 @@ if st.session_state.view == 'main':
                 cols[0].image(row.get('Photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=80)
                 cols[1].markdown(f"**{row.get('Name', 'Speaker')}**")
                 cols[1].caption(f"{row.get('Job Title', '')} at {row.get('Organization', '')}")
-                # FIXED: Ensuring LinkedIn buttons appear for speakers
                 ln_link = row.get('LinkedIn Profile')
                 if pd.notna(ln_link) and str(ln_link).strip() != "":
                     cols[1].link_button("LinkedIn", str(ln_link))
 
-    with tab5: # About SSSIHL
-        # --- HOME BUTTON ---
-        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
-        if st.button("🏠 Home", key="home_btn_about", help="Go back to Home tab"):
-            st.session_state.active_tab = 0
-            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
-            st.markdown(js, unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        # --- END HOME BUTTON ---
+    # ── ABOUT SSSIHL ──
+    elif active_tab == "🏫 About SSSIHL":
+        home_button("home_about")
 
         st.subheader("Sri Sathya Sai Institute of Higher Learning")
         st.markdown("### Integral Education for a Better World")
@@ -252,7 +234,6 @@ if st.session_state.view == 'main':
         st.markdown("### **Brindavan Campus**")
         st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
        
-        # FIXED: Reliable image fallback for Campus
         if os.path.exists("campus.jpg"):
             st.image("campus.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
         else:
@@ -282,21 +263,18 @@ else:
         st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
         st.divider()
         
-        # ADDED: Topic shown clearly
         st.subheader("📖 Topic")
         st.write(s.get('Topic', 'Join us for this session.'))
         
         st.subheader("🎙️ Speaker")
         st.write(s.get('Speaker Name', 'Various'))
 
-        # Summary Feature
         summary_text = s.get('Event Summary')
         if pd.notna(summary_text) and str(summary_text).strip() != "":
             st.subheader("📝 Session Summary")
             with st.container(border=True):
                 st.write(str(summary_text))
         
-        # ADDED: Feedback button specific to each session
         feedback_url = s.get('Feedback_Link')
         if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
             st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
