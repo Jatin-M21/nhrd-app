@@ -186,6 +186,12 @@ else:
         st.title(s.get('Session Title', 'Event Session'))
         st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
         st.divider()
+        feedback_url = s.get('Feedback_Link')
+        
+        if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
+            st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
+            st.info("Your feedback helps us improve the summit experience!")
+        st.divider()
         st.subheader("🎙️ Speaker")
         st.write(s.get('Speaker Name', 'Various'))
         st.subheader("📖 Topic")
