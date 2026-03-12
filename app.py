@@ -6,10 +6,10 @@ import os
 st.set_page_config(page_title="NHRD Summit 2026", layout="centered")
 
 # --- DATA LOADING ---
-@st.cache_data
+@st.cache_data(ttl=60)
 def load_data(file):
     try: 
-        df = pd.read_csv(file)
+        df = pd.read_csv(file, encoding='utf-8-sig')
         df.columns = df.columns.str.strip() 
         return df
     except: 
