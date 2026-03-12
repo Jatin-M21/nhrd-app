@@ -68,8 +68,8 @@ st.markdown("""
     .stButton>button { border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
-    <style>
 
+    <style>
     /* Main Background color */
     .stApp { background-color: #0E1117; }
 
