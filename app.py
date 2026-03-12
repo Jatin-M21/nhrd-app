@@ -126,8 +126,20 @@ else:
 if st.session_state.view == 'main':
     with tab1:
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
-        st.subheader("Welcome")
-        st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
+        
+        # --- NEW: MANUAL HAPPENING NOW ---
+        st.subheader("🕒 Happening Now")
+        if not df_agenda.empty and 'Status' in df_agenda.columns:
+            live_session = df_agenda[df_agenda['Status'].str.strip().str.lower() == 'live'].head(1)
+            if not live_session.empty:
+                row = live_session.iloc[0]
+                with st.container(border=True):
+                    st.markdown(f"**{row.get('Session Title')}**")
+                    st.caption(f"📍 {row.get('Hall Location')} | 🕒 {row.get('Start Time')}")
+            else:
+                st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
+        else:
+            st.write("Welcome! Explore the tabs for more information.")
         
         utc_now = datetime.datetime.now()
         ist_now = utc_now + datetime.timedelta(hours=5, minutes=30)
@@ -140,6 +152,9 @@ if st.session_state.view == 'main':
                 c1, c2 = st.columns([4, 1])
                 c1.markdown(f"**{row.get('Session Title', 'Session')}**")
                 c1.caption(f"🕒 {row.get('Start Time', 'TBD')} | 📍 {row.get('Hall Location', 'TBD')}")
+                # ADDED: Topic preview in list
+                if pd.notna(row.get('Topic')):
+                    c1.markdown(f"*{row.get('Topic')}*")
                 if c2.button("View", key=f"ag_{i}"):
                     st.session_state.selected_item = row.to_dict()
                     st.session_state.view = 'agenda_detail'
@@ -179,8 +194,10 @@ if st.session_state.view == 'main':
                 cols[0].image(row.get('Photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=80)
                 cols[1].markdown(f"**{row.get('Name', 'Speaker')}**")
                 cols[1].caption(f"{row.get('Job Title', '')} at {row.get('Organization', '')}")
-                if pd.notna(row.get('LinkedIn Profile')):
-                    cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
+                # FIXED: Ensuring LinkedIn buttons appear for speakers
+                ln_link = row.get('LinkedIn Profile')
+                if pd.notna(ln_link) and str(ln_link).strip() != "":
+                    cols[1].link_button("LinkedIn", str(ln_link))
 
     with tab5: # About SSSIHL
        st.subheader("Sri Sathya Sai Institute of Higher Learning")
@@ -191,8 +208,11 @@ if st.session_state.view == 'main':
        st.markdown("### **Brindavan Campus**")
        st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
        
+       # FIXED: Reliable image fallback for Campus
        if os.path.exists("campus.jpg"):
-           st.image("campus.jpg", caption="SSSIHL Brindavan Campus", width=350)
+           st.image("campus.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
+       else:
+           st.image("https://www.sssihl.edu.in/wp-content/uploads/2019/07/SSSIHL-Brindavan-Campus-1.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
        
        st.divider()
        st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
@@ -218,6 +238,13 @@ else:
         st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
         st.divider()
         
+        # ADDED: Topic shown clearly
+        st.subheader("📖 Topic")
+        st.write(s.get('Topic', 'Join us for this session.'))
+        
+        st.subheader("🎙️ Speaker")
+        st.write(s.get('Speaker Name', 'Various'))
+
         # Summary Feature
         summary_text = s.get('Event Summary')
         if pd.notna(summary_text) and str(summary_text).strip() != "":
@@ -225,14 +252,8 @@ else:
             with st.container(border=True):
                 st.write(str(summary_text))
         
-        # Feedback Feature
+        # ADDED: Feedback button specific to each session
         feedback_url = s.get('Feedback_Link')
         if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
             st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
             st.info("Your feedback helps us improve the summit experience!")
-            
-        st.divider()
-        st.subheader("🎙️ Speaker")
-        st.write(s.get('Speaker Name', 'Various'))
-        st.subheader("📖 Topic")
-        st.write(s.get('Topic', 'Join us for this session.'))
