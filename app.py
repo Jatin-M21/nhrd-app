@@ -88,8 +88,11 @@ if st.session_state.view == 'main':
         st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
         st.subheader("Welcome")
         st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
-        current_time = datetime.datetime.now().strftime("%I:%M %p")
-        st.caption(f"Last Data Sync: {current_time}")
+        utc_now = datetime.datetime.now()
+        ist_now = utc_now + datetime.timedelta(hours=5, minutes=30)
+        current_time = ist_now.strftime("%I:%M %p")
+    
+        st.caption(f"Last Data Sync: {current_time} (IST)")
 
     with tab2: # Agenda
         for i, row in df_agenda.iterrows():
