@@ -68,6 +68,29 @@ st.markdown("""
     .stButton>button { border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
+    <style>
+
+    /* Main Background color */
+    .stApp { background-color: #0E1117; }
+
+    /* Custom Card Style */
+    .custom-card {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Highlight Title Text */
+    .highlight-text {
+        color: #FF4B4B;
+        font-weight: bold;
+        font-size: 22px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # --- NAVIGATION ---
 if st.session_state.view != 'main':
