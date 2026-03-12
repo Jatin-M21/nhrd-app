@@ -4,7 +4,7 @@ import os
 import datetime
 
 # --- PAGE CONFIG ---
-st.set_page_config(page_title="NHRD Summit 2026", layout="centered")
+st.set_page_config(page_title="NHRD Summit 2026", layout="centered", initial_sidebar_state="collapsed")
 
 # --- DATA LOADING ---
 @st.cache_data(ttl=60)
@@ -20,121 +20,98 @@ df_agenda = load_data("agenda.csv")
 df_students = load_data("students.csv")
 df_speakers = load_data("speakers.csv")
 
-# --- HELPER: Smart Specialization Logic ---
-def get_spec(row_data):
-    standalone = row_data.get('MBA Specialization (Select) (Standalone)')
-    major = row_data.get('MBA Specialization (Major)')
-    minor = row_data.get('MBA Specialization (Minor)')
-    
-    if pd.notna(standalone) and str(standalone).strip() != "" and str(standalone).lower() != "nan":
-        return str(standalone)
-    elif pd.notna(major) and str(major).strip() != "" and str(major).lower() != "nan":
-        if pd.notna(minor) and str(minor).strip() != "" and str(minor).lower() != "nan":
-            return f"{major} + {minor}"
-        return str(major)
-    return "MBA Student"
-
 # --- SESSION STATE ---
+if 'nav' not in st.session_state: st.session_state.nav = 'Home'
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
 
-# --- UI STYLING ---
+# --- UI STYLING (The "Mobile App" Look) ---
 st.markdown("""
     <style>
-    /* 1. Remove Streamlit Header & Adjust Background */
     [data-testid="stHeader"] {display:none;}
-    .stApp {
-        background-color: #0E1117;
-        color: #FFFFFF;
-    }
+    .stApp { background-color: #0E1117; color: white; }
+    
+    /* 1. Remove standard tabs */
+    .stTabs { display: none; }
 
-    /* 2. Enhanced Tab Navigation for Mobile */
-    .stTabs [data-baseweb="tab-list"] { 
-        gap: 4px; 
-        justify-content: center;
+    /* 2. Custom Typography for Summit Header */
+    .summit-title { font-size: 32px; font-weight: 800; margin-bottom: 0px; }
+    .summit-subtitle { color: #808495; font-size: 16px; margin-bottom: 20px; }
+    .section-header { font-size: 22px; font-weight: 700; margin: 20px 0px 10px 0px; text-transform: uppercase; }
+
+    /* 3. Navigation Bar at Bottom */
+    .nav-wrapper {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
         background-color: #1A1C24;
-        padding: 5px;
-        border-radius: 12px;
+        padding: 10px 0px;
+        border-top: 1px solid #262730;
+        z-index: 1000;
+        display: flex;
+        justify-content: space-around;
     }
     
-    .stTabs [data-baseweb="tab"] {
-        height: 42px; 
-        background-color: transparent; 
-        border-radius: 8px; 
-        color: #9499A1; 
-        padding: 0 10px;
-        font-size: 12px;
-        border: none !important;
-    }
-    
-    /* Active Tab Glow Effect */
-    .stTabs [aria-selected="true"] {
-        background-color: #FF4B4B !important;
-        color: white !important;
-        box-shadow: 0px 4px 10px rgba(255, 75, 75, 0.3);
-    }
-
-    /* 3. Card Effect for Containers */
+    /* 4. Styled Cards */
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #1A1C24 !important;
         border: 1px solid #262730 !important;
-        border-radius: 15px !important;
+        border-radius: 16px !important;
         padding: 15px !important;
-        transition: transform 0.2s ease-in-out;
-        margin-bottom: 10px;
-    }
-
-    /* Subtle hover effect */
-    div[data-testid="stVerticalBlockBorderWrapper"] > div:hover {
-        border-color: #FF4B4B !important;
-    }
-
-    /* 4. Styled Buttons */
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        border: 1px solid #FF4B4B;
-        background-color: transparent;
-        color: white;
-        font-weight: 500;
+        margin-bottom: 12px !important;
     }
     
-    .stButton>button:hover {
-        background-color: #FF4B4B;
-        color: white;
-    }
-
-    .stCaption {
-        color: #808495 !important;
+    /* 5. Live Update Banner */
+    .live-banner {
+        background: linear-gradient(90deg, #1E3A5F 0%, #2D5A88 100%);
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 20px;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- NAVIGATION ---
+# --- HELPER: Specialization ---
+def get_spec(row_data):
+    standalone = row_data.get('MBA Specialization (Select) (Standalone)')
+    major = row_data.get('MBA Specialization (Major)')
+    minor = row_data.get('MBA Specialization (Minor)')
+    if pd.notna(standalone) and str(standalone).strip() and str(standalone).lower() != "nan":
+        return str(standalone)
+    elif pd.notna(major) and str(major).strip() and str(major).lower() != "nan":
+        return f"{major} + {minor}" if pd.notna(minor) and str(minor).strip() else str(major)
+    return "MBA Student"
+
+# --- MAIN NAVIGATION LOGIC ---
 if st.session_state.view != 'main':
-    if st.button("⬅️ Back to List"):
+    if st.button("⬅️ Back"):
         st.session_state.view = 'main'
-        st.session_state.selected_item = None
         st.rerun()
-else:
-    if os.path.exists("hero.png"):
-        st.image("hero.png", use_container_width=True)
-    st.title("NHRD SUMMIT 2026")
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["🏠 Home", "📅 Agenda", "🎓 Students", "🎙️ Speakers", "🏫 About SSSIHL"])
 
-# --- MAIN VIEWS ---
+# --- CONTENT RENDERING ---
 if st.session_state.view == 'main':
-    with tab1:
-        st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
-        st.subheader("Welcome")
-        st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
+    
+    # HOME VIEW
+    if st.session_state.nav == 'Home':
+        st.markdown('<div class="live-banner"><b>📢 LIVE UPDATE</b><br>The event is starting at 9:00 AM. Please assemble in the Auditorium.</div>', unsafe_allow_html=True)
         
-        utc_now = datetime.datetime.now()
-        ist_now = utc_now + datetime.timedelta(hours=5, minutes=30)
-        current_time = ist_now.strftime("%I:%M %p")
-        st.caption(f"Last Data Sync: {current_time} (IST)")
+        if os.path.exists("hero.png"):
+            st.image("hero.png", use_container_width=True)
+        
+        st.markdown('<div class="summit-title">NHRD SUMMIT 2026</div>', unsafe_allow_html=True)
+        st.markdown('<div class="summit-subtitle">13th March 2026 | SSSIHL Brindavan Campus</div>', unsafe_allow_html=True)
+        
+        st.markdown('<div class="section-header">🕒 HAPPENING NOW</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            c1, c2 = st.columns([1, 3])
+            c1.image("https://cdn-icons-png.flaticon.com/512/3652/3652191.png", width=60) # Placeholder for Welcome Note pic
+            c2.markdown("**Welcome Note**")
+            c2.caption("Auditorium")
 
-    with tab2: # Agenda
+    # AGENDA VIEW
+    elif st.session_state.nav == 'Agenda':
+        st.markdown('<div class="section-header">📅 SUMMIT AGENDA</div>', unsafe_allow_html=True)
         for i, row in df_agenda.iterrows():
             with st.container(border=True):
                 c1, c2 = st.columns([4, 1])
@@ -145,94 +122,58 @@ if st.session_state.view == 'main':
                     st.session_state.view = 'agenda_detail'
                     st.rerun()
 
-    with tab3: # Students
-        batch_filter = st.radio("Select Batch:", ["All", "2nd Years (Finals)", "1st Years (Juniors)"], horizontal=True)
-        search = st.text_input("🔍 Search by Name or Specialization...")
-        
-        filtered_df = df_students.copy()
-        
-        if batch_filter == "2nd Years (Finals)":
-            filtered_df = filtered_df[filtered_df['nn'].astype(str).str.startswith('24')]
-        elif batch_filter == "1st Years (Juniors)":
-            filtered_df = filtered_df[filtered_df['nn'].astype(str).str.startswith('25')]
-
-        for i, row in filtered_df.iterrows():
+    # STUDENTS VIEW
+    elif st.session_state.nav == 'Students':
+        st.markdown('<div class="section-header">🎓 STUDENT TALENT</div>', unsafe_allow_html=True)
+        search = st.text_input("🔍 Search Talent...")
+        for i, row in df_students.iterrows():
             name = str(row.get('FULL Name', 'Student'))
-            current_spec = get_spec(row)
-            
-            if search.lower() in name.lower() or search.lower() in current_spec.lower():
+            spec = get_spec(row)
+            if search.lower() in name.lower() or search.lower() in spec.lower():
                 with st.container(border=True):
                     c1, c2 = st.columns([1, 4])
                     img = row.get('photo') if pd.notna(row.get('photo')) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
                     c1.image(img, width=60)
                     c2.markdown(f"**{name}**")
-                    c2.caption(current_spec)
-                    if st.button("View Profile", key=f"st_{i}"):
+                    c2.caption(spec)
+                    if st.button("Profile", key=f"st_{i}"):
                         st.session_state.selected_item = row.to_dict()
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
-    with tab4: # Speakers
+    # SPEAKERS VIEW
+    elif st.session_state.nav == 'Speakers':
+        st.markdown('<div class="section-header">🎙️ FEATURED SPEAKERS</div>', unsafe_allow_html=True)
         for i, row in df_speakers.iterrows():
             with st.container(border=True):
                 cols = st.columns([1, 3])
                 cols[0].image(row.get('Photo', "https://cdn-icons-png.flaticon.com/512/149/149071.png"), width=80)
                 cols[1].markdown(f"**{row.get('Name', 'Speaker')}**")
                 cols[1].caption(f"{row.get('Job Title', '')} at {row.get('Organization', '')}")
-                if pd.notna(row.get('LinkedIn Profile')):
-                    cols[1].link_button("LinkedIn", str(row.get('LinkedIn Profile')))
-
-    with tab5: # About SSSIHL
-       st.subheader("Sri Sathya Sai Institute of Higher Learning")
-       st.markdown("### Integral Education for a Better World")
-       st.write("SSSIHL is a unique university founded on the principle of providing values-based education. It offers high-quality education free of cost.")
-       
-       st.markdown("---")
-       st.markdown("### **Brindavan Campus**")
-       st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
-       
-       if os.path.exists("campus.jpg"):
-           st.image("campus.jpg", caption="SSSIHL Brindavan Campus", width=350)
-       
-       st.divider()
-       st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
 # --- DETAIL PAGES ---
-else:
+elif st.session_state.view == 'student_detail':
     s = st.session_state.selected_item
-    if st.session_state.view == 'student_detail':
-        detail_spec = get_spec(s)
-        st.title(s.get('FULL Name', 'Profile'))
-        st.markdown(f"#### {detail_spec}")
-        st.divider()
-        st.subheader("📝 About")
-        st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
-        st.subheader("💼 Internship")
-        st.write(f"**{str(s.get('Internship Company', 'N/A'))}** - {str(s.get('InternshipRole', 'N/A'))}")
-        if pd.notna(s.get('LinkedIn Profile Link')):
-            st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
+    st.title(s.get('FULL Name', 'Profile'))
+    st.markdown(f"#### {get_spec(s)}")
+    st.divider()
+    st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
+    if pd.notna(s.get('LinkedIn Profile Link')):
+        st.link_button("🔗 LinkedIn Profile", str(s.get('LinkedIn Profile Link')))
 
-    elif st.session_state.view == 'agenda_detail':
-        if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(s.get('Session Title', 'Event Session'))
-        st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
-        st.divider()
-        
-        # Summary Feature
-        summary_text = s.get('Event Summary')
-        if pd.notna(summary_text) and str(summary_text).strip() != "":
-            st.subheader("📝 Session Summary")
-            with st.container(border=True):
-                st.write(str(summary_text))
-        
-        # Feedback Feature
-        feedback_url = s.get('Feedback_Link')
-        if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
-            st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
-            st.info("Your feedback helps us improve the summit experience!")
-            
-        st.divider()
-        st.subheader("🎙️ Speaker")
-        st.write(s.get('Speaker Name', 'Various'))
-        st.subheader("📖 Topic")
-        st.write(s.get('Topic', 'Join us for this session.'))
+elif st.session_state.view == 'agenda_detail':
+    s = st.session_state.selected_item
+    st.title(s.get('Session Title'))
+    st.caption(f"📍 {s.get('Hall Location')}")
+    st.info(str(s.get('Event Summary', 'Details coming soon.')))
+    fb = s.get('Feedback_Link')
+    if pd.notna(fb): st.link_button("⭐ Rate Session", str(fb), use_container_width=True)
+
+# --- FIXED BOTTOM NAVBAR (Native App Feel) ---
+st.markdown("<br><br><br>", unsafe_allow_html=True) # Space for navbar
+cols = st.columns(5)
+if cols[0].button("🏠\nHome"): st.session_state.nav = 'Home'; st.rerun()
+if cols[1].button("📅\nAgenda"): st.session_state.nav = 'Agenda'; st.rerun()
+if cols[2].button("🎓\nTalent"): st.session_state.nav = 'Students'; st.rerun()
+if cols[3].button("🎙️\nSpeaker"): st.session_state.nav = 'Speakers'; st.rerun()
+if cols[4].button("🏫\nSSSIHL"): st.session_state.nav = 'Home'; st.rerun() # Points back to info
