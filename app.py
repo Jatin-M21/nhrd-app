@@ -186,6 +186,12 @@ else:
         st.title(s.get('Session Title', 'Event Session'))
         st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
         st.divider()
+        summary_text = s.get('Event Summary')
+        if pd.notna(summary_text) and str(summary_text).strip() != "":
+            st.subheader("📝 Session Summary & Highlights")
+            with st.container(border=True):
+                st.write(str(summary_text))
+        st.divider()
         feedback_url = s.get('Feedback_Link')
         
         if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
