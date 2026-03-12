@@ -214,4 +214,25 @@ else:
 
     elif st.session_state.view == 'agenda_detail':
         if os.path.exists("hero.png"): st.image("hero.png", use_container_width=True)
-        st.title(s.get('Session Title',
+        st.title(s.get('Session Title', 'Event Session'))
+        st.caption(f"🕒 {s.get('Start Time', 'TBD')} | 📍 {s.get('Hall Location', 'TBD')}")
+        st.divider()
+        
+        # Summary Feature
+        summary_text = s.get('Event Summary')
+        if pd.notna(summary_text) and str(summary_text).strip() != "":
+            st.subheader("📝 Session Summary")
+            with st.container(border=True):
+                st.write(str(summary_text))
+        
+        # Feedback Feature
+        feedback_url = s.get('Feedback_Link')
+        if pd.notna(feedback_url) and str(feedback_url).startswith("http"):
+            st.link_button("⭐ Submit Session Feedback", str(feedback_url), use_container_width=True)
+            st.info("Your feedback helps us improve the summit experience!")
+            
+        st.divider()
+        st.subheader("🎙️ Speaker")
+        st.write(s.get('Speaker Name', 'Various'))
+        st.subheader("📖 Topic")
+        st.write(s.get('Topic', 'Join us for this session.'))
