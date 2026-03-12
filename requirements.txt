@@ -1,4 +1,2 @@
 streamlit
 pandas
-pandas
-streamlit-option-menu
