@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 import datetime
+from streamlit_option_menu import option_menu
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="NHRD Summit 2026", layout="centered", initial_sidebar_state="collapsed")
@@ -25,35 +26,32 @@ if 'nav' not in st.session_state: st.session_state.nav = 'Home'
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
 
-# --- UI STYLING (The "Mobile App" Look) ---
+# --- UI STYLING (Premium Mobile Feel) ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display:none;}
     .stApp { background-color: #0E1117; color: white; }
     
-    /* 1. Remove standard tabs */
+    /* Remove standard tabs */
     .stTabs { display: none; }
 
-    /* 2. Custom Typography */
+    /* Custom Typography */
     .summit-title { font-size: 32px; font-weight: 800; margin-bottom: 0px; line-height: 1.2;}
     .summit-subtitle { color: #808495; font-size: 16px; margin-bottom: 20px; }
     .section-header { font-size: 22px; font-weight: 700; margin: 20px 0px 10px 0px; text-transform: uppercase; }
 
-    /* 3. Navigation Bar at Bottom */
-    .nav-wrapper {
+    /* Bottom Nav Bar Fix */
+    iframe[title="streamlit_option_menu.option_menu"] {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
+        z-index: 9999;
         background-color: #1A1C24;
-        padding: 10px 0px;
         border-top: 1px solid #262730;
-        z-index: 1000;
-        display: flex;
-        justify-content: space-around;
     }
     
-    /* 4. Styled Cards */
+    /* Styled Cards */
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #1A1C24 !important;
         border: 1px solid #262730 !important;
@@ -62,7 +60,7 @@ st.markdown("""
         margin-bottom: 12px !important;
     }
     
-    /* 5. Live Update Banner */
+    /* Live Update Banner */
     .live-banner {
         background: linear-gradient(90deg, #1E3A5F 0%, #2D5A88 100%);
         padding: 15px;
@@ -70,16 +68,14 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* 6. Button Styling */
+    /* Top Right Button Styling */
     .stButton>button {
-        width: 100%;
         border-radius: 8px;
         border: 1px solid #FF4B4B;
         background-color: transparent;
         color: white;
         font-weight: 500;
     }
-    .stButton>button:hover { background-color: #FF4B4B; color: white; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -94,48 +90,34 @@ def get_spec(row_data):
         return f"{major} + {minor}" if pd.notna(minor) and str(minor).strip() else str(major)
     return "MBA Student"
 
-
-# ==========================================
-# --- UNIVERSAL TOP ACTION BAR ---
-# ==========================================
-# This creates a top-right button logic depending on the current view
+# --- TOP ACTION BAR (Dynamic Buttons) ---
 top_c1, top_c2 = st.columns([4, 1.2]) 
 with top_c2:
     if st.session_state.view != 'main':
-        # If on a detail page, show "Back to List"
         if st.button("⬅️ List", use_container_width=True):
             st.session_state.view = 'main'
             st.rerun()
     elif st.session_state.nav != 'Home':
-        # If on a main tab that is NOT Home, show "Go to Home"
         if st.button("🏠 Home", use_container_width=True):
             st.session_state.nav = 'Home'
             st.rerun()
-# Note: If view == 'main' AND nav == 'Home', the top right corner stays empty and clean!
-# ==========================================
-
 
 # --- CONTENT RENDERING ---
 if st.session_state.view == 'main':
     
-    # HOME VIEW
     if st.session_state.nav == 'Home':
         st.markdown('<div class="live-banner"><b>📢 LIVE UPDATE</b><br>The event is starting at 9:00 AM. Please assemble in the Auditorium.</div>', unsafe_allow_html=True)
-        
         if os.path.exists("hero.png"):
             st.image("hero.png", use_container_width=True)
-        
         st.markdown('<div class="summit-title">NHRD SUMMIT 2026</div>', unsafe_allow_html=True)
         st.markdown('<div class="summit-subtitle">13th March 2026 | SSSIHL Brindavan Campus</div>', unsafe_allow_html=True)
-        
         st.markdown('<div class="section-header">🕒 HAPPENING NOW</div>', unsafe_allow_html=True)
         with st.container(border=True):
             c1, c2 = st.columns([1, 3])
-            c1.image("https://cdn-icons-png.flaticon.com/512/3652/3652191.png", width=60) # Placeholder
+            c1.image("https://cdn-icons-png.flaticon.com/512/3652/3652191.png", width=60)
             c2.markdown("**Welcome Note**")
             c2.caption("Auditorium")
 
-    # AGENDA VIEW
     elif st.session_state.nav == 'Agenda':
         st.markdown('<div class="section-header">📅 SUMMIT AGENDA</div>', unsafe_allow_html=True)
         for i, row in df_agenda.iterrows():
@@ -148,7 +130,6 @@ if st.session_state.view == 'main':
                     st.session_state.view = 'agenda_detail'
                     st.rerun()
 
-    # STUDENTS VIEW
     elif st.session_state.nav == 'Students':
         st.markdown('<div class="section-header">🎓 STUDENT TALENT</div>', unsafe_allow_html=True)
         search = st.text_input("🔍 Search Talent...")
@@ -167,7 +148,6 @@ if st.session_state.view == 'main':
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
-    # SPEAKERS VIEW
     elif st.session_state.nav == 'Speakers':
         st.markdown('<div class="section-header">🎙️ FEATURED SPEAKERS</div>', unsafe_allow_html=True)
         for i, row in df_speakers.iterrows():
@@ -192,14 +172,27 @@ elif st.session_state.view == 'agenda_detail':
     st.title(s.get('Session Title'))
     st.caption(f"📍 {s.get('Hall Location')}")
     st.info(str(s.get('Event Summary', 'Details coming soon.')))
-    fb = s.get('Feedback_Link')
-    if pd.notna(fb): st.link_button("⭐ Rate Session", str(fb), use_container_width=True)
 
-# --- FIXED BOTTOM NAVBAR (Native App Feel) ---
-st.markdown("<br><br><br>", unsafe_allow_html=True) # Space for navbar
-cols = st.columns(5)
-if cols[0].button("🏠\nHome"): st.session_state.nav = 'Home'; st.rerun()
-if cols[1].button("📅\nAgenda"): st.session_state.nav = 'Agenda'; st.rerun()
-if cols[2].button("🎓\nTalent"): st.session_state.nav = 'Students'; st.rerun()
-if cols[3].button("🎙️\nSpeaker"): st.session_state.nav = 'Speakers'; st.rerun()
-if cols[4].button("🏫\nSSSIHL"): st.session_state.nav = 'Home'; st.rerun()
+# --- GLIDE-STYLE BOTTOM NAVBAR ---
+st.markdown("<br><br><br><br>", unsafe_allow_html=True)
+nav_options = ["Home", "Agenda", "Students", "Speakers", "SSSIHL"]
+current_idx = nav_options.index(st.session_state.nav) if st.session_state.nav in nav_options else 0
+
+selected = option_menu(
+    menu_title=None,
+    options=nav_options,
+    icons=["house", "calendar", "mortarboard", "mic", "building"],
+    default_index=current_idx,
+    orientation="horizontal",
+    styles={
+        "container": {"padding": "0!important", "background-color": "#1A1C24", "border-radius": "0"},
+        "icon": {"color": "#9499A1", "font-size": "18px"},
+        "nav-link": {"font-size": "10px", "text-align": "center", "margin": "0px", "color": "#9499A1"},
+        "nav-link-selected": {"background-color": "transparent", "color": "#FF4B4B", "font-weight": "700"}
+    }
+)
+
+if selected != st.session_state.nav:
+    st.session_state.nav = selected
+    st.session_state.view = 'main'
+    st.rerun()
