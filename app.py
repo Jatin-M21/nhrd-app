@@ -25,16 +25,14 @@ if 'nav' not in st.session_state: st.session_state.nav = 'Home'
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
 
-# --- UI STYLING (Top Navigation Focus) ---
+# --- UI STYLING ---
 st.markdown("""
     <style>
     [data-testid="stHeader"] {display:none;}
     .stApp { background-color: #0E1117; color: white; }
-    
-    /* Remove standard tabs */
     .stTabs { display: none; }
 
-    /* Pinned Top Navigation Logic */
+    /* Pinned Top Navigation Bar */
     iframe[title="streamlit_option_menu.option_menu"] {
         position: fixed;
         top: 0;
@@ -45,16 +43,13 @@ st.markdown("""
         border-bottom: 1px solid #262730;
     }
 
-    /* Push content down so it doesn't hide under the top nav */
+    /* Padding to prevent content from hiding under navbar */
     .main-content {
-        margin-top: 80px;
+        margin-top: 100px;
+        padding-bottom: 50px;
     }
 
-    /* Typography & Cards */
-    .summit-title { font-size: 30px; font-weight: 800; margin-bottom: 0px; line-height: 1.2;}
-    .summit-subtitle { color: #808495; font-size: 15px; margin-bottom: 20px; }
-    .section-header { font-size: 20px; font-weight: 700; margin: 20px 0px 10px 0px; text-transform: uppercase; }
-
+    /* Card Styling */
     div[data-testid="stVerticalBlockBorderWrapper"] > div {
         background-color: #1A1C24 !important;
         border: 1px solid #262730 !important;
@@ -63,24 +58,20 @@ st.markdown("""
         margin-bottom: 12px !important;
     }
     
+    .summit-title { font-size: 30px; font-weight: 800; margin-bottom: 0px; line-height: 1.2;}
+    .summit-subtitle { color: #808495; font-size: 15px; margin-bottom: 20px; }
+    .section-header { font-size: 20px; font-weight: 700; margin: 20px 0px 10px 0px; text-transform: uppercase; }
+    
     .live-banner {
         background: linear-gradient(90deg, #1E3A5F 0%, #2D5A88 100%);
         padding: 15px;
         border-radius: 12px;
         margin-bottom: 20px;
     }
-
-    /* Buttons */
-    .stButton>button {
-        border-radius: 8px;
-        border: 1px solid #FF4B4B;
-        background-color: transparent;
-        color: white;
-    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- TOP NAVIGATION BAR (Glide-Style, moved to Top) ---
+# --- TOP NAVIGATION ---
 nav_options = ["Home", "Agenda", "Students", "Speakers", "SSSIHL"]
 current_idx = nav_options.index(st.session_state.nav) if st.session_state.nav in nav_options else 0
 
@@ -103,22 +94,10 @@ if selected != st.session_state.nav:
     st.session_state.view = 'main'
     st.rerun()
 
-# --- CONTENT CONTAINER (Wrapped in a div to handle the top margin) ---
+# --- CONTENT WRAPPER ---
 st.markdown('<div class="main-content">', unsafe_allow_html=True)
 
-# --- TOP ACTION BAR (Contextual Back/Home Buttons) ---
-top_c1, top_c2 = st.columns([4, 1.2]) 
-with top_c2:
-    if st.session_state.view != 'main':
-        if st.button("⬅️ List", use_container_width=True):
-            st.session_state.view = 'main'
-            st.rerun()
-    elif st.session_state.nav != 'Home':
-        if st.button("🏠 Home", use_container_width=True):
-            st.session_state.nav = 'Home'
-            st.rerun()
-
-# --- HELPERS ---
+# --- HELPER FUNCTIONS ---
 def get_spec(row_data):
     standalone = row_data.get('MBA Specialization (Select) (Standalone)')
     major = row_data.get('MBA Specialization (Major)')
@@ -129,11 +108,12 @@ def get_spec(row_data):
         return f"{major} + {minor}" if pd.notna(minor) and str(minor).strip() else str(major)
     return "MBA Student"
 
-# --- MAIN CONTENT LOGIC ---
+# --- MAIN NAVIGATION LOGIC ---
 if st.session_state.view == 'main':
     
     if st.session_state.nav == 'Home':
         st.markdown('<div class="live-banner"><b>📢 LIVE UPDATE</b><br>The event is starting at 9:00 AM. Please assemble in the Auditorium.</div>', unsafe_allow_html=True)
+        # Using the hero image from your design
         if os.path.exists("hero.png"):
             st.image("hero.png", use_container_width=True)
         st.markdown('<div class="summit-title">NHRD SUMMIT 2026</div>', unsafe_allow_html=True)
@@ -147,6 +127,7 @@ if st.session_state.view == 'main':
 
     elif st.session_state.nav == 'Agenda':
         st.markdown('<div class="section-header">📅 SUMMIT AGENDA</div>', unsafe_allow_html=True)
+        if df_agenda.empty: st.info("Agenda details will appear here.")
         for i, row in df_agenda.iterrows():
             with st.container(border=True):
                 c1, c2 = st.columns([4, 1])
@@ -159,10 +140,9 @@ if st.session_state.view == 'main':
 
     elif st.session_state.nav == 'Students':
         st.markdown('<div class="section-header">🎓 STUDENT TALENT</div>', unsafe_allow_html=True)
-        search = st.text_input("🔍 Search Talent...")
+        search = st.text_input("🔍 Search by Name or Specialization...")
         for i, row in df_students.iterrows():
-            name = str(row.get('FULL Name', 'Student'))
-            spec = get_spec(row)
+            name, spec = str(row.get('FULL Name', 'Student')), get_spec(row)
             if search.lower() in name.lower() or search.lower() in spec.lower():
                 with st.container(border=True):
                     c1, c2 = st.columns([1, 4])
@@ -170,23 +150,55 @@ if st.session_state.view == 'main':
                     c1.image(img, width=60)
                     c2.markdown(f"**{name}**")
                     c2.caption(spec)
-                    if st.button("Profile", key=f"st_{i}"):
+                    if st.button("View Profile", key=f"st_{i}"):
                         st.session_state.selected_item = row.to_dict()
                         st.session_state.view = 'student_detail'
                         st.rerun()
 
-# --- DETAIL PAGES ---
+    elif st.session_state.nav == 'Speakers':
+        st.markdown('<div class="section-header">🎙️ FEATURED SPEAKERS</div>', unsafe_allow_html=True)
+        if df_speakers.empty:
+            st.warning("Speaker list is being updated. Please check back later.")
+        else:
+            for i, row in df_speakers.iterrows():
+                with st.container(border=True):
+                    c1, c2 = st.columns([1, 3])
+                    img = row.get('Photo') if pd.notna(row.get('Photo')) else "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                    c1.image(img, width=80)
+                    c2.markdown(f"**{row.get('Name', 'Speaker')}**")
+                    c2.caption(f"{row.get('Job Title', '')} \n\n {row.get('Organization', '')}")
+
+    elif st.session_state.nav == 'SSSIHL':
+        st.markdown('<div class="section-header">🏛️ ABOUT THE INSTITUTE</div>', unsafe_allow_html=True)
+        # Using Brindavan campus image
+        st.image("https://www.sssihl.edu.in/wp-content/uploads/2019/07/SSSIHL-Brindavan-Campus-1.jpg", use_container_width=True)
+        st.markdown("""
+        **Sri Sathya Sai Institute of Higher Learning (SSSIHL)** is a unique institution that provides quality education free of cost, focusing on character building along with Academic Excellence.
+        
+        **Brindavan Campus:**
+        Located in Whitefield, Bengaluru, this campus is home to the Faculty of Management and Commerce. It fosters an environment where students combine modern business skills with human values.
+        """)
+
+# --- DETAIL VIEWS ---
 elif st.session_state.view == 'student_detail':
+    if st.button("⬅️ Back to List"):
+        st.session_state.view = 'main'
+        st.rerun()
     s = st.session_state.selected_item
     st.title(s.get('FULL Name', 'Profile'))
-    st.markdown(f"#### {get_spec(s)}")
+    st.write(f"**Specialization:** {get_spec(s)}")
     st.divider()
-    st.write(str(s.get('Brief Write-up (3 lines)', 'N/A')))
+    st.write(str(s.get('Brief Write-up (3 lines)', 'No bio available.')))
+    if pd.notna(s.get('LinkedIn Profile Link')):
+        st.link_button("🔗 Connect on LinkedIn", str(s.get('LinkedIn Profile Link')))
 
 elif st.session_state.view == 'agenda_detail':
+    if st.button("⬅️ Back to Agenda"):
+        st.session_state.view = 'main'
+        st.rerun()
     s = st.session_state.selected_item
     st.title(s.get('Session Title'))
-    st.caption(f"📍 {s.get('Hall Location')}")
-    st.info(str(s.get('Event Summary', 'Details coming soon.')))
+    st.info(f"📍 {s.get('Hall Location')} | 🕒 {s.get('Start Time')}")
+    st.write(str(s.get('Event Summary', 'No additional details provided.')))
 
-st.markdown('</div>', unsafe_allow_html=True) # Close content div
+st.markdown('</div>', unsafe_allow_html=True)
