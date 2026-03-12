@@ -37,6 +37,7 @@ def get_spec(row_data):
 # --- SESSION STATE ---
 if 'view' not in st.session_state: st.session_state.view = 'main'
 if 'selected_item' not in st.session_state: st.session_state.selected_item = None
+if 'active_tab' not in st.session_state: st.session_state.active_tab = 0
 
 # --- UI STYLING ---
 st.markdown("""
@@ -107,6 +108,13 @@ st.markdown("""
     .stCaption {
         color: #808495 !important;
     }
+
+    /* 5. Home button styling - small, top-left, subtle */
+    .home-btn-container {
+        display: flex;
+        justify-content: flex-start;
+        margin-bottom: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -147,6 +155,15 @@ if st.session_state.view == 'main':
         st.caption(f"Last Data Sync: {current_time} (IST)")
 
     with tab2: # Agenda
+        # --- HOME BUTTON ---
+        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
+        if st.button("🏠 Home", key="home_btn_agenda", help="Go back to Home tab"):
+            st.session_state.active_tab = 0
+            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
+            st.markdown(js, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        # --- END HOME BUTTON ---
+
         for i, row in df_agenda.iterrows():
             with st.container(border=True):
                 c1, c2 = st.columns([4, 1])
@@ -161,6 +178,15 @@ if st.session_state.view == 'main':
                     st.rerun()
 
     with tab3: # Students
+        # --- HOME BUTTON ---
+        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
+        if st.button("🏠 Home", key="home_btn_students", help="Go back to Home tab"):
+            st.session_state.active_tab = 0
+            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
+            st.markdown(js, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        # --- END HOME BUTTON ---
+
         batch_filter = st.radio("Select Batch:", ["All", "2nd Years (Finals)", "1st Years (Juniors)"], horizontal=True)
         search = st.text_input("🔍 Search by Name or Specialization...")
         
@@ -188,6 +214,15 @@ if st.session_state.view == 'main':
                         st.rerun()
 
     with tab4: # Speakers
+        # --- HOME BUTTON ---
+        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
+        if st.button("🏠 Home", key="home_btn_speakers", help="Go back to Home tab"):
+            st.session_state.active_tab = 0
+            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
+            st.markdown(js, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        # --- END HOME BUTTON ---
+
         for i, row in df_speakers.iterrows():
             with st.container(border=True):
                 cols = st.columns([1, 3])
@@ -200,22 +235,31 @@ if st.session_state.view == 'main':
                     cols[1].link_button("LinkedIn", str(ln_link))
 
     with tab5: # About SSSIHL
-       st.subheader("Sri Sathya Sai Institute of Higher Learning")
-       st.markdown("### Integral Education for a Better World")
-       st.write("SSSIHL is a unique university founded on the principle of providing values-based education. It offers high-quality education free of cost.")
+        # --- HOME BUTTON ---
+        st.markdown('<div class="home-btn-container">', unsafe_allow_html=True)
+        if st.button("🏠 Home", key="home_btn_about", help="Go back to Home tab"):
+            st.session_state.active_tab = 0
+            js = "<script>window.parent.document.querySelectorAll('[data-baseweb=\"tab\"]')[0].click();</script>"
+            st.markdown(js, unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        # --- END HOME BUTTON ---
+
+        st.subheader("Sri Sathya Sai Institute of Higher Learning")
+        st.markdown("### Integral Education for a Better World")
+        st.write("SSSIHL is a unique university founded on the principle of providing values-based education. It offers high-quality education free of cost.")
        
-       st.markdown("---")
-       st.markdown("### **Brindavan Campus**")
-       st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
+        st.markdown("---")
+        st.markdown("### **Brindavan Campus**")
+        st.write("Located in Whitefield, Bengaluru, this campus fosters an environment where students combine modern business skills with human values.")
        
-       # FIXED: Reliable image fallback for Campus
-       if os.path.exists("campus.jpg"):
-           st.image("campus.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
-       else:
-           st.image("https://www.sssihl.edu.in/wp-content/uploads/2019/07/SSSIHL-Brindavan-Campus-1.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
+        # FIXED: Reliable image fallback for Campus
+        if os.path.exists("campus.jpg"):
+            st.image("campus.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
+        else:
+            st.image("https://www.sssihl.edu.in/wp-content/uploads/2019/07/SSSIHL-Brindavan-Campus-1.jpg", caption="SSSIHL Brindavan Campus", use_container_width=True)
        
-       st.divider()
-       st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
+        st.divider()
+        st.link_button("🌐 Visit Official Website", "https://www.sssihl.edu.in")
 
 # --- DETAIL PAGES ---
 else:
