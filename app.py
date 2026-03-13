@@ -152,7 +152,7 @@ if st.session_state.view == 'main':
                 row = live_session.iloc[0]
                 with st.container(border=True):
                     st.markdown(f"**{row.get('Session Title')}**")
-                    st.caption(f"📍 {row.get('Hall Location')} | 🕒 {row.get('Start Time')}")
+                    st.caption(f"📍 {row.get('Hall Location')} ")
             else:
                 st.write("Browse the tabs to explore the agenda and our MBA talent pool.")
         else:
