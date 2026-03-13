@@ -171,7 +171,7 @@ if st.session_state.view == 'main':
             with st.container(border=True):
                 c1, c2 = st.columns([4, 1])
                 c1.markdown(f"**{row.get('Session Title', 'Session')}**")
-                c1.caption(f"🕒 {row.get('Start Time', 'TBD')} | 📍 {row.get('Hall Location', 'TBD')}")
+                c1.caption(f"📍 {row.get('Hall Location', 'TBD')}")
                 if pd.notna(row.get('Topic')):
                     c1.markdown(f"*{row.get('Topic')}*")
                 if c2.button("View", key=f"ag_{i}"):
