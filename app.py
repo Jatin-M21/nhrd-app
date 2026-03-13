@@ -143,7 +143,7 @@ if st.session_state.view == 'main':
 
     # ── HOME ──
     if active_tab == "🏠 Home":
-        st.info("📢 **LIVE:** Summit in progress at SSSIHL Brindavan.")
+        st.info("📢 **LIVE:** Summit comes to a close.")
         
         st.subheader("🕒 Happening Now")
         if not df_agenda.empty and 'Status' in df_agenda.columns:
